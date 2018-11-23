@@ -109,7 +109,7 @@
       </v-navigation-drawer>
       <v-footer :fixed="fixed" app>
         <v-spacer></v-spacer>
-        <span>&copy; 2017</span>
+        <!-- <span>&copy; 2017</span> -->
       </v-footer>
     </v-app>
   </div>
@@ -134,6 +134,10 @@
         to: '/analyzer'
       }],
       storages: [{
+          icon: 'home',
+          title: 'Home',
+          to: '/storage'
+        },{
           icon: 'list',
           title: 'File List',
           to: '/filelist'

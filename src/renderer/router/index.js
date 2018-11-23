@@ -8,7 +8,7 @@ export default new Router({
     {
       path: '/', 
       name: 'main-view',
-      component: require('@/components/MainView').default
+      component: require('@/components/HomeView').default
     },{
       path: '/vaccine',
       name: 'vaccine-view',
@@ -18,6 +18,11 @@ export default new Router({
       path: '/analyzer',
       name: 'analyzer-home-view',
       component: require('@/components/AnalyzerHomeView').default
+    },
+    {
+      path: '/storage',
+      name: 'storage-home-view',
+      component: require('@/components/StorageHomeView').default
     },
     {
       path: '/filelist',
@@ -33,6 +38,11 @@ export default new Router({
       path: '/wallet',
       name: 'wallet-view',
       component: require('@/components/WalletView').default
+    },
+    {
+      path: '/send-wallet',
+      name: 'send-wallet-view',
+      component: require('@/components/SendWalletView').default
     },
     // {
     //   path: '/',

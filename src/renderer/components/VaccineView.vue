@@ -9,7 +9,32 @@
                 </v-card-title>
     
                 <v-card-actions>
-                    <v-btn flat color="blue">Detect</v-btn>
+                    <v-dialog v-model="dialog" width="500">
+                        <v-btn slot="activator" color="blue lighten-1" dark>
+                            Detect
+                        </v-btn>
+    
+                        <v-card>
+                            <v-card-title class="headline grey lighten-1" primary-title>
+                                Send Report
+                            </v-card-title>
+    
+                            <v-card-text>
+                                * 검사 결과 <br><br>
+
+                                검사 결과를 보내실 겁니까?
+                            </v-card-text>
+    
+                            <v-divider></v-divider>
+    
+                            <v-card-actions>
+                                <v-spacer></v-spacer>
+                                <v-btn color="primary" flat @click="dialog = false">
+                                    I accept
+                                </v-btn>
+                            </v-card-actions>
+                        </v-card>
+                    </v-dialog>
                 </v-card-actions>
             </v-card>
         </v-flex>
