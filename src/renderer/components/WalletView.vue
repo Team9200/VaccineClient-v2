@@ -1,6 +1,7 @@
 <template>
     <v-layout row>
         <v-flex xs12>
+            <h1>Wallet</h1>
             <v-card>
                 <v-list two-line>
                     <v-list-tile >

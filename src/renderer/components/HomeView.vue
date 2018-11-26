@@ -1,5 +1,6 @@
 <template>
     <div style="width: 100%">
+        <h1>Home</h1>
         <v-layout>
             <v-btn style="height: 400px; font-size: 25px;" router :to="items[0].to" block color="red" dark>Collector</v-btn>
             <div style="padding-left: 10px;"></div>

@@ -1,6 +1,7 @@
 <template>
     <v-layout>
         <v-flex xs12>
+            <h1>File List</h1>
             <v-data-table :headers="headers" :items="files" class="elevation-1">
                 <template slot="items" slot-scope="props">
                   <td>{{ props.item.no }}</td>

@@ -1,6 +1,7 @@
 <template>
     <v-layout>
         <v-flex xs12 sm6 offset-sm3>
+            <h1>Vaccine</h1>
             <v-card>
                 <v-card-title primary-title>
                     <div>

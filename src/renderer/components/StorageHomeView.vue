@@ -1,6 +1,7 @@
 <template>
     <v-layout row>
         <v-flex xs12 sm6 offset-sm3>
+            <h1>Storage Home</h1>
             <v-card>
                 <v-list two-line>
                     <v-list-tile >
