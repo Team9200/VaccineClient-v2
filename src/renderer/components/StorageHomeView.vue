@@ -1,6 +1,6 @@
 <template>
     <v-layout row>
-        <v-flex xs12 sm6 offset-sm3>
+        <v-flex>
             <h1>Storage Home</h1>
             <v-card>
                 <v-list two-line>
@@ -11,16 +11,21 @@
     
                         <v-list-tile-content>
                             <v-list-tile-title>Storage Used</v-list-tile-title>
-                            <v-list-tile-sub-title>55%</v-list-tile-sub-title>
+                            <!-- TODO: progress bar -->
+                            <v-list-tile-sub-title><v-progress-linear v-model="value" :active="show" :indeterminate="query" :query="true"></v-progress-linear></v-list-tile-sub-title>
                         </v-list-tile-content>
                     </v-list-tile>
     
-                    <v-list-tile >
-                        <v-list-tile-action></v-list-tile-action>
+                    <v-list-tile>
+                        <!-- TODO: add icon -->
+                        <v-list-tile-action>
+
+                        </v-list-tile-action>
     
                         <v-list-tile-content>
                             <v-list-tile-title>Response Rate</v-list-tile-title>
-                            <v-list-tile-sub-title>90%</v-list-tile-sub-title>
+                            <!-- TODO: progress bar -->
+                            <v-list-tile-sub-title><v-progress-linear v-model="value" :active="show" :indeterminate="query" :query="true"></v-progress-linear></v-list-tile-sub-title>
                         </v-list-tile-content>
     
                         <!-- <v-list-tile-action>
