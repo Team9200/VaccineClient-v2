@@ -2,13 +2,15 @@ import {
   app,
   BrowserWindow,
   ipcMain
-} from 'electron'
+} from 'electron';
 
 import {
   PythonShell
-} from 'python-shell'
+} from 'python-shell';
 
-const path = require('path');
+import os from 'os';
+import path from 'path';
+import storage from 'electron-json-storage'; 
 
 /**
  * Set `__static` path to static files in production
@@ -59,7 +61,7 @@ app.on('activate', () => {
 })
 
 ipcMain.on('scanStart', (event, message) => {
-  console.log('Scan Start', message);
+  console.log('ipcMain:scanStart', message);
   const scanPath = message;
   const options = {
     mode: 'text',
@@ -74,6 +76,23 @@ ipcMain.on('scanStart', (event, message) => {
     console.log('Scan Result: ', scanResult);
     event.sender.send('scanResult', scanResult);
   });
+});
+
+ipcMain.on('setMode', (event, message) => {
+  console.log('ipcMain:setMode', message);
+  switch (message) {
+    case 'collector':
+      storage.set('mode', {mode: 'collector'});
+      break;
+    case 'analyzer':
+      storage.set('mode', {mode: 'analyzer'});
+      break;
+    case 'storage':
+      storage.set('mode', {mode: 'storage'});
+      break;
+    default:
+      break;
+  }
 });
 
 

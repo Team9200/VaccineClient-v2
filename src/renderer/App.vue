@@ -5,7 +5,7 @@
         <v-list>
           <v-list-tile>
             <v-list-tile-title class="title">
-              LinearVaccine
+              {{ this.title }}
             </v-list-tile-title>
           </v-list-tile>
   
@@ -54,6 +54,9 @@
   
           <v-list-group>
             <v-list-tile slot="activator">
+              <v-list-tile-action>
+                <v-icon small>fas fa-box</v-icon>
+              </v-list-tile-action>
               <v-list-tile-title>Storage</v-list-tile-title>
             </v-list-tile>
   
@@ -76,6 +79,14 @@
                     </v-btn> -->
         <v-toolbar-title v-text="title"></v-toolbar-title>
         <v-spacer></v-spacer>
+        <v-btn>
+          <v-icon>reload</v-icon>
+        </v-btn>
+        <v-btn router :to="setting">
+          <v-icon>settings</v-icon>
+        </v-btn>
+        <!-- <v-icon router :to="setting">settings</v-icon> -->
+
         <!-- <v-toolbar-items class="hidden-sm-and-down">
             <v-menu offset-y>
               <v-btn slot="activator" color="" blue>
@@ -97,19 +108,9 @@
           </v-slide-y-transition>
         </v-container>
       </v-content>
-      <v-navigation-drawer temporary fixed :right="right" v-model="rightDrawer" app>
-        <v-list>
-          <v-list-tile @click.native="right = !right">
-            <v-list-tile-action>
-              <v-icon light>compare_arrows</v-icon>
-            </v-list-tile-action>
-            <v-list-tile-title>Switch drawer (click me)</v-list-tile-title>
-          </v-list-tile>
-        </v-list>
-      </v-navigation-drawer>
       <v-footer :fixed="fixed" app>
         <v-spacer></v-spacer>
-        <!-- <span>&copy; 2017</span> -->
+        <span>&copy; 2018 Team9200 &nbsp;&nbsp;&nbsp;</span>
       </v-footer>
     </v-app>
   </div>
@@ -123,6 +124,7 @@
       drawer: false,
       fixed: false,
       home: '/',
+      setting: '/setting',
       collectors: [{
         icon: 'search',
         title: 'Vaccine',
@@ -161,15 +163,37 @@
         title: 'Storage'
       }],
       miniVariant: false,
-      right: true,
-      rightDrawer: false,
       title: 'LinearVaccine'
-    })
+    }),
+    created() {
+      storage.has('mode', function (err, hasKey) {
+        if (err) throw err;
+        if (!hasKey)
+          storage.set('mode', {mode: 'collector'});
+      });
+    },
+    mounted() {
+      const vm = this;
+      storage.has('mode', function (err, hasKey) {
+        if (err) throw err;
+        if (hasKey) {
+          storage.get('mode', function (err, data) {
+            if (err) throw err;
+            vm.home = '/' + data.mode;
+          });
+        }
+      });
+    },
+    watch: {
+      // home: function (data) {
+      //   console.log('this is', data);
+      // }
+    }
   }
 </script>
 
 <style>
   @import url('https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons');
-  
+  @import url('https://use.fontawesome.com/releases/v5.5.0/css/all.css');
   /* Global CSS */
 </style>

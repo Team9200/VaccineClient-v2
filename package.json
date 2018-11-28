@@ -56,6 +56,8 @@
   },
   "dependencies": {
     "axios": "^0.16.1",
+    "babel-polyfill": "^6.26.0",
+    "electron-json-storage": "^4.1.4",
     "python-shell": "^1.0.6",
     "vue": "^2.4.2",
     "vue-electron": "^1.0.6",

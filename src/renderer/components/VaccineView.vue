@@ -11,7 +11,7 @@
     
                 <v-card-actions>
                     <v-dialog v-model="dialog" width="500">
-                        <v-btn @click="scanStart()" slot="activator" color="blue lighten-1" dark>
+                        <v-btn @click="scanStart()" slot="activator" color="green" dark>
                             Detect
                         </v-btn>
     
@@ -21,14 +21,14 @@
                             </v-card-title>
     
                             <v-card-text>
-                                * 검사 결과 <p v-text="scan-result"></p> 검사 결과를 보내실 겁니까?
+                                * 검사 결과 <p v-text="scanResult"></p> 검사 결과를 보내실 겁니까?
                             </v-card-text>
     
                             <v-divider></v-divider>
     
                             <v-card-actions>
                                 <v-spacer></v-spacer>
-                                <v-btn color="primary" flat @click="dialog = false">
+                                <v-btn color="green" flat @click="dialog = false">
                                     I accept
                                 </v-btn>
                             </v-card-actions>
@@ -45,10 +45,11 @@
         name: 'vaccine-view',
         data: () => {
             return {
+                dialog: '',
                 scanPath: new String(),
                 scanResult: new String()
-                }
-            },
+            }
+        },
         methods: {
             pathIn(e) {
                 // console.log('Path in');

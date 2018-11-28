@@ -6,13 +6,13 @@
                 <v-list two-line>
                     <v-list-tile >
                         <v-list-tile-action>
-                            <v-icon color="blue">folder</v-icon>
+                            <v-icon color="green">folder</v-icon>
                         </v-list-tile-action>
     
                         <v-list-tile-content>
                             <v-list-tile-title>Storage Used</v-list-tile-title>
                             <!-- TODO: progress bar -->
-                            <v-list-tile-sub-title><v-progress-linear v-model="value" :active="show" :indeterminate="query" :query="true"></v-progress-linear></v-list-tile-sub-title>
+                            <!-- <v-list-tile-sub-title><v-progress-linear color="green" v-model="value" :active="show" :indeterminate="query" :query="true"></v-progress-linear></v-list-tile-sub-title> -->
                         </v-list-tile-content>
                     </v-list-tile>
     
@@ -25,7 +25,7 @@
                         <v-list-tile-content>
                             <v-list-tile-title>Response Rate</v-list-tile-title>
                             <!-- TODO: progress bar -->
-                            <v-list-tile-sub-title><v-progress-linear v-model="value" :active="show" :indeterminate="query" :query="true"></v-progress-linear></v-list-tile-sub-title>
+                            <!-- <v-list-tile-sub-title><v-progress-linear color="green" v-model="value" :active="show" :indeterminate="query" :query="true"></v-progress-linear></v-list-tile-sub-title> -->
                         </v-list-tile-content>
     
                         <!-- <v-list-tile-action>
@@ -37,7 +37,7 @@
     
                     <v-list-tile>
                         <v-list-tile-action>
-                            <v-icon color="blue">mail</v-icon>
+                            <v-icon color="green">mail</v-icon>
                         </v-list-tile-action>
     
                         <v-list-tile-content>
@@ -46,7 +46,7 @@
                         </v-list-tile-content>
 
                         <v-btn router :to="send_link">
-                            <v-icon color="blue">send</v-icon>
+                            <v-icon color="green">send</v-icon>
                         </v-btn>
                     </v-list-tile>
                 </v-list>

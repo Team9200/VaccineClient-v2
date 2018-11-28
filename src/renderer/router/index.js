@@ -9,7 +9,13 @@ export default new Router({
       path: '/', 
       name: 'main-view',
       component: require('@/components/HomeView').default
-    },{
+    },
+    {
+      path: '/collector',
+      name: 'collector-home-view',
+      component: require('@/components/CollectorHomeView').default
+    },
+    {
       path: '/vaccine',
       name: 'vaccine-view',
       component: require('@/components/VaccineView').default
@@ -43,6 +49,11 @@ export default new Router({
       path: '/send-wallet',
       name: 'send-wallet-view',
       component: require('@/components/SendWalletView').default
+    },
+    {
+      path: '/setting',
+      name: 'setting-view',
+      component: require('@/components/SettingView').default
     },
     // {
     //   path: '/',
