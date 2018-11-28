@@ -5,13 +5,13 @@
             <v-card>
                 <v-card-title primary-title>
                     <div>
-                        <input type="file">
+                        <input type="file" directory webkitdirectory>
                     </div>
                 </v-card-title>
     
                 <v-card-actions>
                     <v-dialog v-model="dialog" width="500">
-                        <v-btn slot="activator" color="blue lighten-1" dark>
+                        <v-btn slot="activator" color="green lighten-1" dark>
                             Detect
                         </v-btn>
     
