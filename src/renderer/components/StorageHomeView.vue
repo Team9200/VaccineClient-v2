@@ -6,7 +6,7 @@
                 <v-list two-line>
                     <v-list-tile >
                         <v-list-tile-action>
-                            <v-icon color="indigo">folder</v-icon>
+                            <v-icon color="blue">folder</v-icon>
                         </v-list-tile-action>
     
                         <v-list-tile-content>
@@ -37,7 +37,7 @@
     
                     <v-list-tile>
                         <v-list-tile-action>
-                            <v-icon color="indigo">mail</v-icon>
+                            <v-icon color="blue">mail</v-icon>
                         </v-list-tile-action>
     
                         <v-list-tile-content>
@@ -46,7 +46,7 @@
                         </v-list-tile-content>
 
                         <v-btn router :to="send_link">
-                            <v-icon color="indigo">send</v-icon>
+                            <v-icon color="blue">send</v-icon>
                         </v-btn>
                     </v-list-tile>
                 </v-list>

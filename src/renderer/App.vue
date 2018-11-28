@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <v-app blue>
+    <v-app dark>
       <v-navigation-drawer fixed :mini-variant="miniVariant" :clipped="clipped" v-model="drawer" app>
         <v-list>
           <v-list-tile>

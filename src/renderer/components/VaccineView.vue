@@ -1,7 +1,7 @@
 <template>
     <v-layout>
-        <v-flex xs12 sm6 offset-sm3>
-            <h1>Vaccine</h1>
+        <v-flex xs12>
+            <!-- <h1>Vaccine</h1> -->
             <v-card>
                 <v-card-title primary-title>
                     <div>
@@ -16,14 +16,12 @@
                         </v-btn>
     
                         <v-card>
-                            <v-card-title class="headline grey lighten-1" primary-title>
+                            <v-card-title class="headline">
                                 Send Report
                             </v-card-title>
     
                             <v-card-text>
-                                * 검사 결과 <br><br>
-
-                                검사 결과를 보내실 겁니까?
+                                * 검사 결과 <br><br> 검사 결과를 보내실 겁니까?
                             </v-card-text>
     
                             <v-divider></v-divider>
@@ -49,5 +47,5 @@
 </script>
 
 <style>
-    
+
 </style>

@@ -21,20 +21,23 @@
             return {
                 headers: [{
                         text: 'no',
-                        align: 'right',
+                        align: 'center',
                         sortable: false,
                         value: 'name'
                     },
                     {
                         text: 'Type',
+                        align: 'center',
                         value: 'type'
                     },
                     {
                         text: 'Hash',
+                        align: 'center',
                         value: 'hash'
                     },
                     {
                         text: 'Size',
+                        align: 'center',
                         value: 'size'
                     }
                 ],
