@@ -44,11 +44,6 @@ export default new Router({
       name: 'send-wallet-view',
       component: require('@/components/SendWalletView').default
     },
-    {
-      path: '/setting',
-      name: 'setting-view',
-      component: require('@/components/SettingView').default
-    },
     // {
     //   path: '/',
     //   name: 'welcome-view',
