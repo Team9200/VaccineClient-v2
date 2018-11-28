@@ -54,6 +54,9 @@
   
           <v-list-group>
             <v-list-tile slot="activator">
+              <v-list-tile-action>
+                <v-icon>fas fa-box</v-icon>
+              </v-list-tile-action>
               <v-list-tile-title>Storage</v-list-tile-title>
             </v-list-tile>
   
@@ -88,6 +91,11 @@
               </v-list>
             </v-menu>
           </v-toolbar-items> -->
+          <v-toolbar-items>
+            <v-btn>
+              <v-icon>fa build</v-icon>
+            </v-btn>
+          </v-toolbar-items>
   
       </v-toolbar>
       <v-content>
@@ -170,6 +178,6 @@
 
 <style>
   @import url('https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons');
-  
+  @import url('https://use.fontawesome.com/releases/v5.5.0/css/all.css');
   /* Global CSS */
 </style>
