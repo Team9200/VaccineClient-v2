@@ -1,7 +1,14 @@
 import {
   app,
-  BrowserWindow
+  BrowserWindow,
+  ipcMain
 } from 'electron'
+
+import {
+  PythonShell
+} from 'python-shell'
+
+const path = require('path');
 
 /**
  * Set `__static` path to static files in production
@@ -50,6 +57,25 @@ app.on('activate', () => {
     createWindow()
   }
 })
+
+ipcMain.on('scanStart', (event, message) => {
+  console.log('Scan Start', message);
+  const scanPath = message;
+  const options = {
+    mode: 'text',
+    // pythonOptions: ['-u'],
+    scriptPath: path.join(__dirname, '../../vaccine/engine/'),
+    args: [scanPath]
+  };
+  PythonShell.run('linvlib.py', options, function (err, results) {
+    if (err) console.log(err);
+    // this is a vaccine result
+    const scanResult = results.toString().replace(/'/gi, '"').replace(/u\"/gi, '"');
+    console.log('Scan Result: ', scanResult);
+    event.sender.send('scanResult', scanResult);
+  });
+});
+
 
 /**
  * Auto Updater
