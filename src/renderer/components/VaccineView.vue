@@ -2,6 +2,7 @@
     <v-layout>
         <v-flex xs12>
             <!-- <h1>Vaccine</h1> -->
+            <!-- scan -->
             <v-card>
                 <v-card-title primary-title>
                     <div>
@@ -21,7 +22,10 @@
                             </v-card-title>
     
                             <v-card-text>
-                                * 검사 결과 <p v-text="scanResult"></p> 검사 결과를 보내실 겁니까?
+                                * 검사 결과 
+                                <!-- <ul><li v-for="scannedpath in scannedPaths">{{ scannedpath }}</li></ul>  -->
+                                <p v-text="scannedPaths"></p>
+                                검사 결과를 보내실 겁니까?
                             </v-card-text>
     
                             <v-divider></v-divider>
@@ -36,6 +40,57 @@
                     </v-dialog>
                 </v-card-actions>
             </v-card>
+
+            <!-- quarantine -->
+            <v-card>
+                <v-card-actions>
+                    <v-dialog v-model="dialog" width="500">
+                        <v-btn @click="quarantine()" slot="activator" color="green" dark>
+                            quarantine
+                        </v-btn>
+                        <v-card>
+                            <v-card-title class="headline">
+                                quarantine list
+                            </v-card-title>
+
+                            <v-card-text>
+                                <!-- <ul>
+                                    <li>ho</li>
+                                </ul> -->
+                                <p v-text="quarantineFileList"></p> 
+                            </v-card-text>
+
+                            <v-divider></v-divider>
+                        </v-card>
+                    </v-dialog>
+                </v-card-actions>
+            </v-card>
+
+            <!-- log -->
+            <v-card>
+                <v-card-actions>
+                    <v-dialog v-model="dialog" width="500">
+                        <v-btn @click="getLog()" slot="activator" color="green" dark>
+                            Log
+                        </v-btn>
+                        <v-card>
+                            <v-card-title class="headline">
+                                Log
+                            </v-card-title>
+
+                            <v-card-text>
+                                <!-- <ul>
+                                    <li>ho</li>
+                                </ul> -->
+                                <p v-text="log"></p> 
+                            </v-card-text>
+
+                            <v-divider></v-divider>
+                        </v-card>
+                    </v-dialog>
+                </v-card-actions>
+            </v-card>
+ 
         </v-flex>
     </v-layout>
 </template>
@@ -47,7 +102,9 @@
             return {
                 dialog: '',
                 scanPath: new String(),
-                scanResult: new String()
+                scannedPaths: new Array(),
+                quarantineFileList: new Array(),
+                log: new Array()
             }
         },
         methods: {
@@ -59,12 +116,32 @@
             scanStart() {
                 // console.log('scan clicked', this.scanPath);
                 ipcRenderer.send('scanStart', this.scanPath.path);
+            },
+            quarantine() {
+                ipcRenderer.send('openQuarantine');
+            },
+            getLog() {
+                ipcRenderer.send('getLog');
             }
         },
         mounted () {
             this.$electron.ipcRenderer.on('scanResult', (event, message) => {
-                this.scanResult = message;
+                const scanResult = JSON.parse(message);
+                console.log(typeof(scanResult), scanResult);
+                this.scannedPaths = scanResult.ScannedPaths;
+                console.log(this.scannedPaths);
             });
+            this.$electron.ipcRenderer.on('quarantineFileList', (event, message) => {
+                const quarantineFileList = message;
+                this.quarantineFileList = quarantineFileList;
+                console.log(this.quarantineFileList);
+            });
+            this.$electron.ipcRenderer.on('log', (event, message) => {
+                const log = message;
+                this.log = log;
+                console.log(log);
+            }
+         )
         }
     }
 </script>

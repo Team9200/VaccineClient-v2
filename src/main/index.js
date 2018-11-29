@@ -11,6 +11,7 @@ import {
 import os from 'os';
 import path from 'path';
 import storage from 'electron-json-storage'; 
+import fs from 'fs';
 
 /**
  * Set `__static` path to static files in production
@@ -76,6 +77,30 @@ ipcMain.on('scanStart', (event, message) => {
     console.log('Scan Result: ', scanResult);
     event.sender.send('scanResult', scanResult);
   });
+});
+
+ipcMain.on('openQuarantine', (event, message) => {
+  console.log('ipcMain:openQuarantine');
+  const quarantinePath = path.join(__dirname, '../../vaccine/engine/tmp/');
+  const quarantineFileList = new Array();
+
+  fs.readdir(quarantinePath, (err, files) => {
+    files.forEach(file => {
+      console.log(file);
+      quarantineFileList.push(file);
+    });
+    event.sender.send('quarantineFileList', quarantineFileList);
+  })
+});
+
+ipcMain.on('getLog', function (event, message) { //로그창 띄우기
+  const logPath = path.join(__dirname, '../../log.txt');
+  console.log(logPath);
+  fs.readFile(logPath, (err, data) => {
+    const logData = data.toString('utf8');
+    console.log(logData);
+    event.sender.send('log', logData);
+  })
 });
 
 ipcMain.on('setMode', (event, message) => {
