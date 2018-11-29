@@ -95,6 +95,7 @@ ipcMain.on('scanStart', (event, message) => {
 
 ipcMain.on('openQuarantine', (event, message) => {
   console.log('ipcMain:openQuarantine');
+  // TODO: Fix vaccine path
   const quarantinePath = path.join(__dirname, '../../vaccine/engine/tmp/');
   const quarantineFileList = new Array();
 
