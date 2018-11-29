@@ -45,8 +45,24 @@
                         </v-list-tile-action>
 
                         <v-list-tile-content>
+                            <v-list-tile-title>Your Vaccine path</v-list-tile-title>
+                            <v-list-tile-sub-title>{{ path }}</v-list-tile-sub-title>
+                        </v-list-tile-content>
+                    </v-list-tile>
+                </v-list>
+            </v-card>
+
+            <!-- TODO: Add vaccine path dialog input -->
+            <v-card>
+                <v-list two-line>
+                    <v-list-tile>
+                        <v-list-tile-action>
+                            <v-icon color="green">settings</v-icon>
+                        </v-list-tile-action>
+
+                        <v-list-tile-content>
                             <v-list-tile-title>Select Vaccine Engine Path</v-list-tile-title>
-                            <v-list-tile-sub-title>You must be set vaccine path!  (Your Vaccine path is {{ path }})</v-list-tile-sub-title>
+                            <v-list-tile-sub-title>You must be set vaccine path!</v-list-tile-sub-title>
                         </v-list-tile-content>
 
                         <v-dialog v-model="dialog2" persistent scrollable max-width="300px">

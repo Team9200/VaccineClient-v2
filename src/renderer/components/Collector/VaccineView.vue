@@ -100,18 +100,19 @@
                 scanPath: new String(),
                 scannedPaths: new Array(),
                 quarantineFileList: new Array(),
-                log: new Array()
+                log: new Array(),
+                vaccinePath: ''
             }
         },
         methods: {
             pathIn(e) {
                 // console.log('Path in');
-                this.scanPath = e.target.files[0];
+                this.scanPath = e.target.files[0].path;
                 // console.log(this.scanPath)
             },
             scanStart() {
                 // console.log('scan clicked', this.scanPath);
-                ipcRenderer.send('scanStart', this.scanPath.path);
+                ipcRenderer.send('scanStart', {path: this.scanPath, vaccinePath: this.vaccinePath});
             },
             quarantine() {
                 ipcRenderer.send('openQuarantine');
@@ -121,6 +122,7 @@
             }
         },
         mounted () {
+            const vm = this;
             this.$electron.ipcRenderer.on('scanResult', (event, message) => {
                 const scanResult = JSON.parse(message);
                 console.log(typeof(scanResult), scanResult);
@@ -136,8 +138,16 @@
                 const log = message;
                 this.log = log;
                 console.log(log);
-            }
-         )
+            });
+            storage.has('vaccine', function (err, hasKey) {
+                if (err) throw err;
+                if (hasKey) {
+                    storage.get('vaccine', function (err, data) {
+                        if (err) throw err;
+                        vm.vaccinePath = data.path;
+                    });
+                }
+            });
         }
     }
 </script>

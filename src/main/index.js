@@ -75,12 +75,14 @@ ipcMain.on('reload', (event, message) => {
 
 ipcMain.on('scanStart', (event, message) => {
   console.log('ipcMain:scanStart', message);
-  const scanPath = message;
+  const scanPath = message.path;
+  const vaccinePath = message.vaccinePath;
   const options = {
     mode: 'text',
     // pythonOptions: ['-u'],
-    // scriptPath: path.join('C:/Users/unidev/Documents/Nodejs/LinearVaccine/vaccine/engine'),
-    scriptPath: path.join(__dirname, '../../vaccine/engine/'),
+    scriptPath: path.join(vaccinePath, '\\engine'),
+    // scriptPath: path.join(vaccinePath, '/engine'),
+    // scriptPath: path.join(__dirname, '../../vaccine/engine/'),
     args: [scanPath]
   };
   PythonShell.run('linvlib.py', options, function (err, results) {
