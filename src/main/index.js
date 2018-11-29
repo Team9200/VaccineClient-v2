@@ -22,7 +22,7 @@ if (process.env.NODE_ENV !== 'development') {
 }
 
 let mainWindow
-const winURL = process.env.NODE_ENV === 'development' ?
+const winURL = process.env.NODE_ENV  === 'development' ?
   `http://localhost:9080` :
   `file://${__dirname}/index.html`
 
@@ -30,11 +30,13 @@ function createWindow() {
   /**
    * Initial window options
    */
+  
   mainWindow = new BrowserWindow({
     height: 590,
     useContentSize: true,
     width: 1000,
     resizable: false,
+    nodeIntegration: false
     // frame: false
   })
 
@@ -61,18 +63,28 @@ app.on('activate', () => {
   }
 })
 
+ipcMain.on('reload', (event, message) => {
+  switch (message) {
+    case 'ping':
+      mainWindow.reload();
+      break;
+    default:
+      break;
+  }
+});
+
 ipcMain.on('scanStart', (event, message) => {
   console.log('ipcMain:scanStart', message);
   const scanPath = message;
   const options = {
     mode: 'text',
     // pythonOptions: ['-u'],
+    // scriptPath: path.join('C:/Users/unidev/Documents/Nodejs/LinearVaccine/vaccine/engine'),
     scriptPath: path.join(__dirname, '../../vaccine/engine/'),
     args: [scanPath]
   };
   PythonShell.run('linvlib.py', options, function (err, results) {
     if (err) console.log(err);
-    // this is a vaccine result
     const scanResult = results.toString().replace(/'/gi, '"').replace(/u\"/gi, '"');
     console.log('Scan Result: ', scanResult);
     event.sender.send('scanResult', scanResult);
@@ -85,6 +97,7 @@ ipcMain.on('openQuarantine', (event, message) => {
   const quarantineFileList = new Array();
 
   fs.readdir(quarantinePath, (err, files) => {
+    if (err) throw err;
     files.forEach(file => {
       console.log(file);
       quarantineFileList.push(file);
@@ -97,6 +110,7 @@ ipcMain.on('getLog', function (event, message) { //로그창 띄우기
   const logPath = path.join(__dirname, '../../log.txt');
   console.log(logPath);
   fs.readFile(logPath, (err, data) => {
+    if (err) throw err;
     const logData = data.toString('utf8');
     console.log(logData);
     event.sender.send('log', logData);

@@ -14,7 +14,7 @@
                             <v-list-tile-sub-title>You can select node!</v-list-tile-sub-title>
                         </v-list-tile-content>
 
-                        <v-dialog v-model="dialog" scrollable max-width="300px">
+                        <v-dialog v-model="dialog" persistent scrollable max-width="300px">
                             <v-btn slot="activator" color="green" dark>Select</v-btn>
                             <v-card>
                                 <v-card-title>Select Node (Current is "{{ mode }}")</v-card-title>
@@ -29,7 +29,7 @@
                                 <v-divider></v-divider>
                                 <v-card-actions>
                                     <v-btn color="green darken-1" flat @click="dialog = false">Close</v-btn>
-                                    <v-btn color="green darken-1" flat @click="setMode">Save</v-btn>
+                                    <v-btn color="green darken-1" flat @click="clickSave">Save</v-btn>
                                 </v-card-actions>
                             </v-card>
                         </v-dialog>
@@ -52,7 +52,11 @@
         methods: {
             setMode: function() {
                 ipcRenderer.send('setMode', this.mode);
+                // this.dialog = false;
+            },
+            clickSave: function() {
                 this.dialog = false;
+                ipcRenderer.send('reload', 'ping');
             }
         },
         mounted () {
@@ -67,6 +71,11 @@
                     });
                 }
             });
+        },
+        watch: {
+            mode: function() {
+                this.setMode();
+            }
         }
     }
 </script>

@@ -6,7 +6,7 @@
             <v-card>
                 <v-card-title primary-title>
                     <div>
-                        <input type="file" @change="pathIn($event)">
+                        <input type="file" @change="pathIn($event)" directory webkitdirectory>
                     </div>
                 </v-card-title>
     
@@ -54,9 +54,6 @@
                             </v-card-title>
 
                             <v-card-text>
-                                <!-- <ul>
-                                    <li>ho</li>
-                                </ul> -->
                                 <p v-text="quarantineFileList"></p> 
                             </v-card-text>
 
@@ -79,9 +76,6 @@
                             </v-card-title>
 
                             <v-card-text>
-                                <!-- <ul>
-                                    <li>ho</li>
-                                </ul> -->
                                 <p v-text="log"></p> 
                             </v-card-text>
 

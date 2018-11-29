@@ -26,50 +26,50 @@
                   </v-list-tile-content>
                 </v-list-tile> -->
   
-          <v-list-group>
+          <!-- <v-list-group v-if="mode === 'collector'">
             <v-list-tile slot="activator">
               <v-list-tile-title>Collector</v-list-tile-title>
-            </v-list-tile>
+            </v-list-tile> -->
   
-            <v-list-tile router :to="collector.to" v-for="(collector, i) in collectors" :key="i">
+            <v-list-tile v-if="mode === 'collector'" router :to="collector.to" v-for="(collector, i) in collectors" :key="i">
               <v-list-tile-action>
                 <v-icon v-text="collector.icon"></v-icon>
               </v-list-tile-action>
               <v-list-tile-title v-text="collector.title"></v-list-tile-title>
             </v-list-tile>
-          </v-list-group>
+          <!-- </v-list-group> -->
   
-          <v-list-group>
+          <!-- <v-list-group v-if="mode === 'analyzer'">
             <v-list-tile slot="activator">
               <v-list-tile-title>Analyzer</v-list-tile-title>
-            </v-list-tile>
+            </v-list-tile> -->
   
-            <v-list-tile router :to="analyzer.to" v-for="(analyzer, i) in analyzers" :key="i">
+            <v-list-tile v-if="mode === 'analyzer'" router :to="analyzer.to" v-for="(analyzer, i) in analyzers" :key="i">
               <v-list-tile-action>
                 <v-icon v-text="analyzer.icon"></v-icon>
               </v-list-tile-action>
               <v-list-tile-title v-text="analyzer.title"></v-list-tile-title>
             </v-list-tile>
-          </v-list-group>
+          <!-- </v-list-group> -->
   
-          <v-list-group>
+          <!-- <v-list-group v-if="mode === 'storage'">
             <v-list-tile slot="activator">
               <v-list-tile-action>
                 <v-icon small>fas fa-box</v-icon>
-              </v-list-tile-action>
+                 </v-list-tile-action>
               <v-list-tile-title>Storage</v-list-tile-title>
-            </v-list-tile>
+            </v-list-tile> -->
   
-            <v-list-tile router :to="storage.to" v-for="(storage, i) in storages" :key="i">
+            <v-list-tile v-if="mode === 'storage'" router :to="storage.to" v-for="(storage, i) in storages" :key="i">
               <v-list-tile-action>
                 <v-icon v-text="storage.icon"></v-icon>
               </v-list-tile-action>
               <v-list-tile-title v-text="storage.title"></v-list-tile-title>
             </v-list-tile>
-          </v-list-group>
+          <!-- </v-list-group> -->
         </v-list>
       </v-navigation-drawer>
-      <v-toolbar fixed app :clipped-left="clipped">
+      <v-toolbar color="green" fixed app :clipped-left="clipped">
         <v-toolbar-side-icon @click.native.stop="drawer = !drawer"></v-toolbar-side-icon>
         <!-- <v-btn 
                       icon
@@ -79,10 +79,10 @@
                     </v-btn> -->
         <v-toolbar-title v-text="title"></v-toolbar-title>
         <v-spacer></v-spacer>
-        <v-btn>
+        <v-btn color="green" @click="refresh">
           <v-icon>refresh</v-icon>
         </v-btn>
-        <v-btn router :to="setting">
+        <v-btn color="green" router :to="setting">
           <v-icon>settings</v-icon>
         </v-btn>
         <!-- <v-icon router :to="setting">settings</v-icon> -->
@@ -124,22 +124,23 @@
       drawer: false,
       fixed: false,
       home: '/',
+      mode: '',
       setting: '/setting',
       collectors: [{
         icon: 'search',
         title: 'Vaccine',
         to: '/vaccine'
+      }, {
+        icon: '',
+        title: 'Quarantine',
+        to: '/quarantine'
+      }, {
+        icon: '',
+        title: 'Log',
+        to: '/log'
       }],
-      analyzers: [{
-        icon: 'home',
-        title: 'Home',
-        to: '/analyzer'
-      }],
+      analyzers: [],
       storages: [{
-          icon: 'home',
-          title: 'Home',
-          to: '/storage'
-        },{
           icon: 'list',
           title: 'File List',
           to: '/filelist'
@@ -166,28 +167,29 @@
       title: 'LinearVaccine'
     }),
     created() {
-      storage.has('mode', function (err, hasKey) {
-        if (err) throw err;
-        if (!hasKey)
-          storage.set('mode', {mode: 'collector'});
-      });
-    },
-    mounted() {
       const vm = this;
       storage.has('mode', function (err, hasKey) {
         if (err) throw err;
+        if (!hasKey) {
+          if (process.env.NODE_ENV === 'production') {
+            storage.setDataPath(os.tmpdir());
+          }
+          storage.set('mode', {mode: 'collector'});
+          // vm.$router.push('/collector');
+        }
         if (hasKey) {
           storage.get('mode', function (err, data) {
             if (err) throw err;
-            vm.home = '/' + data.mode;
+            vm.mode = data.mode;
+            vm.$router.push('/');
           });
         }
       });
     },
-    watch: {
-      // home: function (data) {
-      //   console.log('this is', data);
-      // }
+    methods: {
+      refresh: function () {
+        ipcRenderer.send('reload', 'ping');
+      }
     }
   }
 </script>

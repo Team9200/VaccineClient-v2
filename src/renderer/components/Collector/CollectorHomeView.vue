@@ -1,6 +1,6 @@
 <template>
     <div style="width: 100%">
-        <h1>Collector Home</h1>
+        <h1>Home</h1>
         <v-layout>
             <v-btn style="height: 400px; font-size: 25px;" router :to="items[0].to" block color="green" dark>{{ items[0].title }}</v-btn>
             <div style="padding-left: 10px;"></div>
@@ -19,15 +19,15 @@
             drawer: false,
             fixed: false,
             items: [{
-                    title: '백신',
+                    title: 'Vaccine',
                     to: '/vaccine'
                 },
                 {
-                    title: '검역소',
-                    to: '/jail'
+                    title: 'Quarantine',
+                    to: '/quarantine'
                 },
                 {
-                    title: '로그',
+                    title: 'Log',
                     to: '/log'
                 }
             ]

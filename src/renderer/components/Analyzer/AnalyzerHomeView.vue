@@ -1,8 +1,8 @@
 <template>
     <v-layout>
-        <h1>Analyzer Home</h1>
+        <h1>Home</h1>
     </v-layout>
-</template>
+</template>  
 
 <script>
 export default {
