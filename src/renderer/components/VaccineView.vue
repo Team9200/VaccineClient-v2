@@ -44,7 +44,7 @@
             <!-- quarantine -->
             <v-card>
                 <v-card-actions>
-                    <v-dialog v-model="dialog" width="500">
+                    <v-dialog v-model="dialog2" width="500">
                         <v-btn @click="quarantine()" slot="activator" color="green" dark>
                             quarantine
                         </v-btn>
@@ -69,7 +69,7 @@
             <!-- log -->
             <v-card>
                 <v-card-actions>
-                    <v-dialog v-model="dialog" width="500">
+                    <v-dialog v-model="dialog3" width="500">
                         <v-btn @click="getLog()" slot="activator" color="green" dark>
                             Log
                         </v-btn>
@@ -101,6 +101,8 @@
         data: () => {
             return {
                 dialog: '',
+                dialog2: '',
+                dialog3: '',
                 scanPath: new String(),
                 scannedPaths: new Array(),
                 quarantineFileList: new Array(),

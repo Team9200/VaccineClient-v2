@@ -22,7 +22,7 @@
   },
   "build": {
     "productName": "linearvaccine",
-    "appId": "org.simulatedgreg.electron-vue",
+    "appId": "kr.kitribob.linearvaccine",
     "directories": {
       "output": "build"
     },

@@ -80,7 +80,7 @@
         <v-toolbar-title v-text="title"></v-toolbar-title>
         <v-spacer></v-spacer>
         <v-btn>
-          <v-icon>reload</v-icon>
+          <v-icon>refresh</v-icon>
         </v-btn>
         <v-btn router :to="setting">
           <v-icon>settings</v-icon>
