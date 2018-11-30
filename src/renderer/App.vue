@@ -31,7 +31,7 @@
               <v-list-tile-title>Collector</v-list-tile-title>
             </v-list-tile> -->
 
-          <v-list-tile v-if="mode === 'collector'" router :to="collector.to" v-for="(collector, i) in collectors" :key="i">
+          <v-list-tile ripple v-if="mode === 'collector'" router :to="collector.to" v-for="(collector, i) in collectors" :key="i">
             <v-list-tile-action>
               <v-icon v-text="collector.icon"></v-icon>
             </v-list-tile-action>
@@ -44,7 +44,7 @@
               <v-list-tile-title>Analyzer</v-list-tile-title>
             </v-list-tile> -->
 
-          <v-list-tile v-if="mode === 'analyzer'" router :to="analyzer.to" v-for="(analyzer, i) in analyzers" :key="i">
+          <v-list-tile ripple v-if="mode === 'analyzer'" router :to="analyzer.to" v-for="(analyzer, i) in analyzers" :key="i">
             <v-list-tile-action>
               <v-icon v-text="analyzer.icon"></v-icon>
             </v-list-tile-action>
@@ -60,7 +60,7 @@
               <v-list-tile-title>Storage</v-list-tile-title>
             </v-list-tile> -->
 
-          <v-list-tile v-if="mode === 'storage'" router :to="storage.to" v-for="(storage, i) in storages" :key="i">
+          <v-list-tile ripple v-if="mode === 'storage'" router :to="storage.to" v-for="(storage, i) in storages" :key="i">
             <v-list-tile-action>
               <v-icon v-text="storage.icon"></v-icon>
             </v-list-tile-action>
@@ -115,7 +115,6 @@
     </v-app>
 
     <v-dialog v-model="first" persistent scrollable max-width="300px">
-      <v-btn slot="activator" color="green" dark>Select</v-btn>
       <v-card>
         <v-card-title>First Setting</v-card-title>
         <v-divider></v-divider>
