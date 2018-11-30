@@ -36,7 +36,6 @@ function createWindow() {
     useContentSize: true,
     width: 1000,
     resizable: false,
-    nodeIntegration: false
     // frame: false
   })
 
@@ -135,6 +134,10 @@ ipcMain.on('setMode', (event, message) => {
     default:
       break;
   }
+});
+
+ipcMain.on('setVaccinePath', (event, message) => {
+  storage.set('vaccine', {path: message});
 });
 
 

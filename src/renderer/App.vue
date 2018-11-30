@@ -79,10 +79,10 @@
                     </v-btn> -->
         <v-toolbar-title v-text="title"></v-toolbar-title>
         <v-spacer></v-spacer>
-        <v-btn color="green" @click="refresh = true">
+        <v-btn icon color="green" @click="refresh = true">
           <v-icon>refresh</v-icon>
         </v-btn>
-        <v-btn color="green" router :to="setting">
+        <v-btn icon color="green" router :to="setting">
           <v-icon>settings</v-icon>
         </v-btn>
         <!-- <v-icon router :to="setting">settings</v-icon> -->
@@ -201,7 +201,6 @@
           storage.set('mode', {
             mode: 'collector'
           });
-          // vm.$router.push('/collector');
         }
         if (hasKey) {
           storage.get('mode', function (err, data) {
@@ -264,7 +263,8 @@
 </script>
 
 <style>
-  /* TODO: Fix local cdn */
+  /* @import url('/static/css/icons.css'); */
+  /* @import url('/static/css/font-awesome.css'); */
   @import url('https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons');
   @import url('https://use.fontawesome.com/releases/v5.5.0/css/all.css');
   /* Global CSS */

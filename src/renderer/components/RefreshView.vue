@@ -10,7 +10,7 @@
         dark
       >
         <v-card-text>
-          Refreshing this page...
+          {{ message }}
           <v-progress-linear
             indeterminate
             color="white"
@@ -24,6 +24,14 @@
 <script>
 export default {
     name: 'refresh-view',
-    props: ['model']
+    props: {
+      model: {
+        type: Boolean
+      },
+      message: {
+        type: String,
+        default: 'Refreshing this page..'
+      }
+    }
 }
 </script>

@@ -51,8 +51,13 @@ export default new Router({
       component: require('@/components/SettingView').default
     },
     {
+      path: '/error',
+      name: 'error-view',
+      component: require('@/components/ErrorView').default
+    },
+    {
       path: '*',
-      redirect: '/'
+      redirect: '/error'
     }
   ]
 })

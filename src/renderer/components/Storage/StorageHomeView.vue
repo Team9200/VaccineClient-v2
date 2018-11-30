@@ -17,7 +17,6 @@
                     </v-list-tile>
     
                     <v-list-tile>
-                        <!-- TODO: add icon -->
                         <v-list-tile-action>
                             <v-icon color="green">far fa-smile</v-icon>
                         </v-list-tile-action>
