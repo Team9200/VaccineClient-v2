@@ -5,7 +5,7 @@
         <v-list>
           <v-list-tile>
             <v-list-tile-title class="title">
-              {{ this.title }}
+              LinearVaccine
             </v-list-tile-title>
           </v-list-tile>
 
@@ -172,7 +172,7 @@
           to: '/getfile'
         },
         {
-          icon: 'mdl-file',
+          icon: 'fas fa-wallet',
           title: 'Wallet',
           to: '/wallet'
         }
@@ -242,6 +242,22 @@
           this.refresh = false;
           this.refreshing();
         }, 3000);
+      },
+      mode (value) {
+        var appname = 'LinearVaccine';
+        switch (value) {
+          case 'collector':
+            this.title = appname;
+            break;
+          case 'analyzer':
+            this.title = appname + ' - Analyzer';
+            break;
+          case 'storage':
+            this.title = appname + ' - Storage';
+            break;
+          default:
+            break;
+        }
       }
     }
   }

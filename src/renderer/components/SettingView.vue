@@ -17,7 +17,7 @@
                         <v-dialog v-model="dialog" persistent scrollable max-width="300px">
                             <v-btn slot="activator" color="green" dark>Select</v-btn>
                             <v-card>
-                                <v-card-title>Select Node (Current is "{{ mode }}")</v-card-title>
+                                <v-card-title>Select Node</v-card-title>
                                 <v-divider></v-divider>
                                 <v-card-text style="height: 300px;">
                                     <v-radio-group v-model="mode" column>
@@ -61,7 +61,7 @@
                         </v-list-tile-action>
 
                         <v-list-tile-content>
-                            <v-list-tile-title>Select Vaccine Engine Path</v-list-tile-title>
+                            <v-list-tile-title>Select Vaccine path</v-list-tile-title>
                             <v-list-tile-sub-title>You must be set vaccine path!</v-list-tile-sub-title>
                         </v-list-tile-content>
 

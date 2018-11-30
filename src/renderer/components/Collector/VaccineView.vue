@@ -11,7 +11,7 @@
                 </v-card-title>
     
                 <v-card-actions>
-                    <v-dialog v-model="dialog" width="500">
+                    <v-dialog v-model="dialog" width="700">
                         <v-btn @click="scanStart()" slot="activator" color="green" dark>
                             Detect
                         </v-btn>
@@ -42,7 +42,7 @@
             </v-card>
 
             <!-- quarantine -->
-            <v-card>
+            <!-- <v-card>
                 <v-card-actions>
                     <v-dialog v-model="dialog2" width="500">
                         <v-btn @click="quarantine()" slot="activator" color="green" dark>
@@ -63,7 +63,6 @@
                 </v-card-actions>
             </v-card>
 
-            <!-- log -->
             <v-card>
                 <v-card-actions>
                     <v-dialog v-model="dialog3" width="500">
@@ -83,7 +82,7 @@
                         </v-card>
                     </v-dialog>
                 </v-card-actions>
-            </v-card>
+            </v-card> -->
  
         </v-flex>
     </v-layout>
@@ -99,8 +98,8 @@
                 dialog3: '',
                 scanPath: new String(),
                 scannedPaths: new Array(),
-                quarantineFileList: new Array(),
-                log: new Array(),
+                // quarantineFileList: new Array(),
+                // log: new Array(),
                 vaccinePath: ''
             }
         },
@@ -114,12 +113,12 @@
                 // console.log('scan clicked', this.scanPath);
                 ipcRenderer.send('scanStart', {path: this.scanPath, vaccinePath: this.vaccinePath});
             },
-            quarantine() {
-                ipcRenderer.send('openQuarantine');
-            },
-            getLog() {
-                ipcRenderer.send('getLog');
-            }
+            // quarantine() {
+            //     ipcRenderer.send('openQuarantine');
+            // },
+            // getLog() {
+            //     ipcRenderer.send('getLog');
+            // }
         },
         mounted () {
             const vm = this;
@@ -129,16 +128,16 @@
                 this.scannedPaths = scanResult.ScannedPaths;
                 console.log(this.scannedPaths);
             });
-            this.$electron.ipcRenderer.on('quarantineFileList', (event, message) => {
-                const quarantineFileList = message;
-                this.quarantineFileList = quarantineFileList;
-                console.log(this.quarantineFileList);
-            });
-            this.$electron.ipcRenderer.on('log', (event, message) => {
-                const log = message;
-                this.log = log;
-                console.log(log);
-            });
+            // this.$electron.ipcRenderer.on('quarantineFileList', (event, message) => {
+            //     const quarantineFileList = message;
+            //     this.quarantineFileList = quarantineFileList;
+            //     console.log(this.quarantineFileList);
+            // });
+            // this.$electron.ipcRenderer.on('log', (event, message) => {
+            //     const log = message;
+            //     this.log = log;
+            //     console.log(log);
+            // });
             storage.has('vaccine', function (err, hasKey) {
                 if (err) throw err;
                 if (hasKey) {

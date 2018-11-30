@@ -6,7 +6,7 @@
                 <v-list two-line>
                     <v-list-tile >
                         <v-list-tile-action>
-                            <v-icon color="green">folder</v-icon>
+                            <v-icon color="green">fas fa-hdd</v-icon>
                         </v-list-tile-action>
     
                         <v-list-tile-content>
@@ -19,7 +19,7 @@
                     <v-list-tile>
                         <!-- TODO: add icon -->
                         <v-list-tile-action>
-
+                            <v-icon color="green">far fa-smile</v-icon>
                         </v-list-tile-action>
     
                         <v-list-tile-content>
@@ -37,7 +37,7 @@
     
                     <v-list-tile>
                         <v-list-tile-action>
-                            <v-icon color="green">mail</v-icon>
+                            <v-icon color="green">fas fa-wallet</v-icon>
                         </v-list-tile-action>
     
                         <v-list-tile-content>

@@ -55,6 +55,7 @@
     }
   },
   "dependencies": {
+    "@fortawesome/vue-fontawesome": "^0.1.2",
     "axios": "^0.16.1",
     "babel-polyfill": "^6.26.0",
     "electron-json-storage": "^4.1.4",
@@ -66,6 +67,7 @@
     "vuex": "^2.3.1"
   },
   "devDependencies": {
+    "@fortawesome/fontawesome-free": "^5.5.0",
     "babel-core": "^6.25.0",
     "babel-loader": "^7.1.1",
     "babel-plugin-istanbul": "^4.1.1",
