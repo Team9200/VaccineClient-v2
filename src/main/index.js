@@ -13,6 +13,10 @@ import path from 'path';
 import storage from 'electron-json-storage'; 
 import fs from 'fs';
 
+require('date-utils');
+const unknownfsReceiver = require('./modules/unknownfs/main')
+//unknownfsReceiver.start();
+
 /**
  * Set `__static` path to static files in production
  * https://simulatedgreg.gitbooks.io/electron-vue/content/en/using-static-assets.html
@@ -72,27 +76,37 @@ ipcMain.on('reload', (event, message) => {
   }
 });
 
+// Collector Node
 ipcMain.on('scanStart', (event, message) => {
   console.log('ipcMain:scanStart', message);
   const scanPath = message.path;
   const vaccinePath = message.vaccinePath;
   const options = {
     mode: 'text',
-    // pythonOptions: ['-u'],
     scriptPath: path.join(vaccinePath, '\\engine'),
-    // scriptPath: path.join(vaccinePath, '/engine'),
-    // scriptPath: path.join(__dirname, '../../vaccine/engine/'),
     args: [scanPath]
   };
   PythonShell.run('linvlib.py', options, function (err, results) {
     if (err) console.log(err);
     const scanResult = results.toString().replace(/'/gi, '"').replace(/u\"/gi, '"');
     console.log('Scan Result: ', scanResult);
-    event.sender.send('scanResult', scanResult);
+
+    const logPath = path.join(__dirname, '../../vaccine/log.json');
+    const dt = new Date().toFormat('YYYY-MM-DD HH24:MI:SS');
+
+    const newLog = '[SCAN]'+ dt + 'start - ' + scanPath;
+
+    fs.readFile(logPath, (err, data) => {
+      if(err) console.log(err);
+      const existingLogJson = JSON.parse(data);
+      existingLogJson.push(newLog);
+      fs.writeFile(logPath, JSON.stringify(existingLogJson));
+    });
+    event.sender.send('scanResult', scanResult, (err) => {console.log(err)});
   });
 });
 
-ipcMain.on('openQuarantine', (event, message) => {
+ipcMain.on('getQuarantine', (event, message) => {
   console.log('ipcMain:openQuarantine');
   // TODO: Fix vaccine path
   const quarantinePath = path.join(__dirname, '../../vaccine/engine/tmp/');
@@ -109,15 +123,21 @@ ipcMain.on('openQuarantine', (event, message) => {
 });
 
 ipcMain.on('getLog', function (event, message) { //로그창 띄우기
-  const logPath = path.join(__dirname, '../../log.txt');
-  console.log(logPath);
+  const logPath = path.join(__dirname, '../../vaccine/log.json');
+
   fs.readFile(logPath, (err, data) => {
     if (err) throw err;
     const logData = data.toString('utf8');
-    console.log(logData);
     event.sender.send('log', logData);
   })
 });
+
+// Storage Node
+
+
+
+
+// Default
 
 ipcMain.on('setMode', (event, message) => {
   console.log('ipcMain:setMode', message);
