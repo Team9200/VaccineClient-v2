@@ -1,8 +1,5 @@
 import { openSync, closeSync, unlinkSync } from 'fs';
 import { v1 } from 'uuid';
-import buffreverse from 'buffer-reverse/inplace';
-import sha256File from 'sha256-file';
-import md5File from 'md5-file';
 import { watch } from 'chokidar';
 import path from 'path';
 
@@ -11,9 +8,8 @@ import { create, set as _set, parse } from './modules/normalHeader';
 import { update } from './modules/rootHeader';
 import { fileCopy, extract as _extract } from './modules/body';
 import { getFileSize, headerBitMapSize, bodyBitMapSize, headerSize } from './modules/file';
-import dirwatch from './modules/DirectoryWatcher';
 
-global.storageName = "test.storage";
+global.storageName = path.join(__dirname, '../../../../test.storage');//"test.storage";
 
 global.RHB = 256;			// Root Header Bytes
 global.BPB = 1/8;			// Body per bitmap Bytes		 
@@ -24,8 +20,8 @@ global.HPB = 1/32;			// header per bitmap Bytes
 
 function recive(unknownFileName){
 
-	return new Promise(async function(resolve, reject){
-
+	return new Promise(async function(resolve){
+		console.log(storageName);
 		var storage = await openSync(storageName,"r+");
 		var storageSize= await getFileSize(storageName);
 
@@ -98,10 +94,11 @@ function recive(unknownFileName){
 
 }
 async function extract(){
+	console.log(__dirname);
 
 	var storage = await openSync(storageName,"r+");
 	var storageSize= await getFileSize(storageName);
-	var unknownFile = await openSync("output/unknown","w+");
+	var unknownFile = await openSync(path.join(__dirname, "output/unknown"),"w+");
 
 	var usedHeader = await usedSpace(storage, storageSize);												// 사용중인 헤더들
 
@@ -127,11 +124,12 @@ export function start(){
 	const watcher = watch(storagePath, {persistent: true});
 
 	watcher
-		.on('add', function(path, stats) 
+		.on('add', function(path) 
 			{ 
 				console.log('add',path);
 
-				var file =path.split("\\")[1];
+				var file =path.split("\\").slice(-1)[0];
+				console.log("file name: ", path.split("\\").slice(-1)[0]);
 				
 				if(file == "give"){
 
@@ -143,11 +141,11 @@ export function start(){
 					recive(path);
 				})
 
-		.on('change', function(path, stats) 
+		.on('change', function() 
 			{ 
 				console.log('change');
 			})
-		.on('unlink', function(path, stats) 
+		.on('unlink', function() 
 			{
 				console.log('delete.');
 			})

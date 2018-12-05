@@ -3,7 +3,7 @@ import { getFileSize, headerBitMapSize, bodyBitMapSize } from './modules/file';
 import { parse } from './modules/normalHeader';
 import { usedSpace } from './modules/bit-vector';
 
-global.storageName = "test.storage";
+global.storageName = path.join(__dirname, '../../../../test.storage'); //"test.storage";
 
 global.RHB = 256;			// Root Header Bytes
 global.BPB = 1/8;			// Body per bitmap Bytes		 

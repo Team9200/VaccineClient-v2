@@ -1,10 +1,8 @@
 import { statSync } from 'fs';
-import uuid from 'uuid';
-import buffreverse from 'buffer-reverse/inplace';
-import sha256File from 'sha256-file';
-import md5File from 'md5-file';
+import path from 'path';
 
-global.storageName = "C:/Users/NGA/Desktop/FileSystem/test.storage";
+
+global.storageName = path.join(__dirname, '../../../../../test.storage');//"C:/Users/true/Documents/projects/test/test.storage";
 
 global.RHB = 256;			// Root Header Bytes
 global.BPB = 1/8;			// Body per bitmap Bytes		 
@@ -31,7 +29,7 @@ export function buff2Hexa(buffer){
 
 export function getFileSize(filename) {			// get File Name / return File Size
 
-	return new Promise(function(resolve, reject){
+	return new Promise(function(resolve){
 
 	    const stats = statSync(filename);
 	    const fileSizeInBytes = stats.size;

@@ -13,7 +13,7 @@ export function fileCopy(srcfd, dstfd, offset, srcSize, dstSize){
 
 			(function(index, count){
 
-				this.setTimeout(function(){
+				setTimeout(function(){
 
 					try{
 
@@ -69,7 +69,7 @@ export function fileExtract(storage, unknownFile , unknownFileSize, unknownFileS
 
 			(function(index, count){
 
-				this.setTimeout(function(){
+				setTimeout(function(){
 
 					if(index == count -1){
 
@@ -106,4 +106,4 @@ export function fileExtract(storage, unknownFile , unknownFileSize, unknownFileS
 }
 
 // export const fileCopy = fileCopy;
-// export const extract = fileExtract;
+export const extract = fileExtract;

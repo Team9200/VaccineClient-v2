@@ -2,47 +2,36 @@ import { appendFileSync, openSync, writeSync, closeSync } from 'fs';
 import { v1 } from 'uuid';
 import { getFileSize } from './modules/file';
 import { create } from './modules/rootHeader';
+import path from 'path';
+
+const testStoragePath = path.join(__dirname, '../../../../test.storage');
 
 function writeNullFile(fd,size){	// GB 단위
-
-	return new Promise(function(resolve, reject){
-
-		var buf = new Buffer(1024*1024*1024)	// 1GB
- 
+	console.log('write Null', 'fd: ', fd, 'size: ' ,size);
+	return new Promise((resolve, reject) => {
+		var buf = new Buffer(1024*1024*1024);	// 1GB
 		for(var index = 0; index < size; index++){
-
 			(function(index, count){
-
-				this.setTimeout(function(){
-
+				console.log(this);
+				setTimeout(function(){
 					try {
-
 						appendFileSync(fd, buf);
 				    	console.log((index+1) .toFixed(2)+ " GB Created");
-				  
 				    	if(index == size -1){
-
 				  			resolve("File Create Success.");
-
 				    	}
-
 					} catch (err) {
 					    /* Handle the error */
 					    reject(err);
-
 					}
-
 				}, 5);
-
 			})(index,size);
-
 		}
-
 	});
 }
 
 
-async function createStorage(size){
+export async function createStorage(size){
 
 	if(size == 0 ||typeof size == 'undefined') {
 	
@@ -52,8 +41,8 @@ async function createStorage(size){
 	}
 	
 	try{
-
-		var fd = openSync("test.storage", "w+");
+		console.log(testStoragePath);	
+		var fd = openSync(testStoragePath, "w+");
 		console.log("createStorage..");
 
 	}
@@ -66,7 +55,7 @@ async function createStorage(size){
 	var result = await writeNullFile(fd ,size);
 	console.log(result);
 
-	var size= await getFileSize("./test.storage");
+	var size= await getFileSize(testStoragePath);
 	var cuuid= v1();
 	var rootHeader = await create(cuuid,size);
 	
@@ -78,4 +67,4 @@ async function createStorage(size){
 }
 
 
-createStorage(process.argv[2]);
+// createStorage(1);

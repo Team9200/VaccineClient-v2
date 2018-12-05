@@ -122,7 +122,7 @@ function bitSearch(fd, storageSize, needSpace ,section){
 		var num = count;
 		var freeSpace=new Array();
 		
-		for(i=0; i<buffer.length && count > 0; i++){
+		for(let i=0; i<buffer.length && count > 0; i++){
 
 			if(!(buffer[i] & 255 < 255)) {
 				
@@ -201,7 +201,7 @@ function usedSearch(fd, storageSize){
 
 		var usedSpace=new Array();
 
-		for(i=0; i<buffer.length; i++){
+		for(let i=0; i<buffer.length; i++){
 
 			if((buffer[i] | 0 != 0)) {
 

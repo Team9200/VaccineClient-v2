@@ -59,6 +59,9 @@
         name: 'storage-home-view',
         data: () => ({
             send_link: '/send-wallet'
-        })
+        }),
+        mounted () {
+            this.$electron.ipcRenderer.send('storageWatch');
+        }
     }
 </script>

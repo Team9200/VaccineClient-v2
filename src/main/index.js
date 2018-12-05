@@ -14,11 +14,11 @@ import storage from 'electron-json-storage';
 import fs from 'fs';
 
 import { start, hello } from './modules/unknownfs/main';
+import { createStorage } from './modules/unknownfs/createStorage';
 
 require('date-utils');
-//unknownfs.start();
-hello();
-start();
+
+// //unknownfs.start();
 
 /**
  * Set `__static` path to static files in production
@@ -110,7 +110,6 @@ ipcMain.on('scanStart', (event, message) => {
 });
 
 ipcMain.on('getQuarantine', (event, message) => {
-  console.log(square(11));
   console.log('ipcMain:openQuarantine');
   // TODO: Fix vaccine path
   const quarantinePath = path.join(__dirname, '../../vaccine/engine/tmp/');
@@ -137,8 +136,12 @@ ipcMain.on('getLog', function (event, message) { //로그창 띄우기
 });
 
 // Storage Node
-
-
+// createStorage(1);
+// start();
+ipcMain.on('storageWatch', function(event, message) {
+  hello();
+  start();
+})
 
 
 // Default

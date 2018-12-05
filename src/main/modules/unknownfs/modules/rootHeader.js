@@ -1,8 +1,9 @@
 import { readSync, writeSync } from 'fs';
 import { blockNum, byteSet, buff2Hexa } from './file';
 import buffreverse from 'buffer-reverse/inplace';
+import path from 'path';
 
-global.storageName = "C:/Users/NGA/Desktop/FileSystem/test.storage";		// 나중에 설치경로 받아와서 넣기.
+global.storageName = path.join(__dirname, '../../../../../test.storage');//"C:/Users/true/Documents/projects/test/test.storage";		// 나중에 설치경로 받아와서 넣기.
 
 global.RHB = 256;			// Root Header Bytes
 global.BPB = 1/8;			// Body per bitmap Bytes		 
