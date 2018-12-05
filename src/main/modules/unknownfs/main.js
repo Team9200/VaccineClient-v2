@@ -98,7 +98,7 @@ async function extract(){
 
 	var storage = await openSync(storageName,"r+");
 	var storageSize= await getFileSize(storageName);
-	var unknownFile = await openSync(path.join(__dirname, "output/unknown"),"w+");
+	var unknownFile = await openSync(path.join(__dirname, "../../../../output/unknown"),"w+");
 
 	var usedHeader = await usedSpace(storage, storageSize);												// 사용중인 헤더들
 
@@ -120,7 +120,7 @@ async function extract(){
 
 }
 export function start(){
-	const storagePath = path.join(__dirname, 'storage');
+	const storagePath = path.join(__dirname, '../../../../storage');
 	const watcher = watch(storagePath, {persistent: true});
 
 	watcher

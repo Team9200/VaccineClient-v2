@@ -139,6 +139,8 @@ ipcMain.on('getLog', function (event, message) { //로그창 띄우기
 // createStorage(1);
 // start();
 ipcMain.on('storageWatch', function(event, message) {
+  try{ fs.mkdirSync('./storage'); }catch(e){ if ( e.code != 'EEXIST' ) throw e; };
+  try{ fs.mkdirSync('./output'); }catch(e){ if ( e.code != 'EEXIST' ) throw e; };
   hello();
   start();
 })
