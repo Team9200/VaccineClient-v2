@@ -1,5 +1,5 @@
-const fs = require('fs');
-const file = require('./file');
+import { readSync, writeSync } from 'fs';
+import { headerBitMapSize, bodyBitMapSize } from './file';
 
 function bitSet(fd, storageSize, freeSpace, section){
 
@@ -10,7 +10,7 @@ function bitSet(fd, storageSize, freeSpace, section){
 		
 		if(section == "body")
 			
-			var start = RHB+ file.headerBitMapSize(storageSize)+ index;
+			var start = RHB+ headerBitMapSize(storageSize)+ index;
 
 		if(section == "header")
 
@@ -19,7 +19,7 @@ function bitSet(fd, storageSize, freeSpace, section){
 
 		try{
 
-			fs.readSync(fd, buffer,0, 1, start);	//	이전 버퍼 받아오기
+			readSync(fd, buffer,0, 1, start);	//	이전 버퍼 받아오기
 		
 		}
 		catch(err){
@@ -34,7 +34,7 @@ function bitSet(fd, storageSize, freeSpace, section){
 
 		try{
 
-			fs.writeSync(fd, newBuff, 0, 1 , start);			// 파일에 쓰기
+			writeSync(fd, newBuff, 0, 1 , start);			// 파일에 쓰기
 
 		}
 		catch(err){
@@ -58,7 +58,7 @@ function bitClear(fd, storageSize, freeSpace, section){
 
 		if(section == "body")
 			
-			var start = RHB+ file.headerBitMapSize(storageSize)+ index;
+			var start = RHB+ headerBitMapSize(storageSize)+ index;
 
 		if(section == "header")
 
@@ -66,7 +66,7 @@ function bitClear(fd, storageSize, freeSpace, section){
 
 		try{
 
-			fs.readSync(fd, buffer,0, 1, start);	//	이전 버퍼 받아오기
+			readSync(fd, buffer,0, 1, start);	//	이전 버퍼 받아오기
 		
 		}
 		catch(err){
@@ -81,7 +81,7 @@ function bitClear(fd, storageSize, freeSpace, section){
 
 		try{
 
-			fs.writeSync(fd, newBuff, 0, 1 , start);			// 파일에 쓰기
+			writeSync(fd, newBuff, 0, 1 , start);			// 파일에 쓰기
 
 		}
 		catch(err){
@@ -103,20 +103,20 @@ function bitSearch(fd, storageSize, needSpace ,section){
 
 		if(section == "header"){
 
-			var bitMapSize = file.headerBitMapSize(storageSize);
+			var bitMapSize = headerBitMapSize(storageSize);
 			var start = RHB			// root header bytes
 
 		}
 
 		if(section == "body"){
 		
-			var bitMapSize = file.bodyBitMapSize(storageSize);
-			var start = RHB + file.headerBitMapSize(storageSize);
+			var bitMapSize = bodyBitMapSize(storageSize);
+			var start = RHB + headerBitMapSize(storageSize);
 			
 		}
 
 		var buffer = new Buffer(bitMapSize);
-		fs.readSync(fd, buffer,0, bitMapSize, start);
+		readSync(fd, buffer,0, bitMapSize, start);
 
 		var count = needSpace;
 		var num = count;
@@ -193,11 +193,11 @@ function usedSearch(fd, storageSize){
 
 	return new Promise(function(resolve, reject){
 
-		var bitMapSize = file.headerBitMapSize(storageSize);
+		var bitMapSize = headerBitMapSize(storageSize);
 		var start = RHB			// root header bytes
 
 		var buffer = new Buffer(bitMapSize);
-		fs.readSync(fd, buffer,0, bitMapSize, start);
+		readSync(fd, buffer,0, bitMapSize, start);
 
 		var usedSpace=new Array();
 
@@ -260,12 +260,7 @@ function usedSearch(fd, storageSize){
 	});
 
 }
-module.exports = {
-
-	set : bitSet,
-	clear : bitClear,
-	emptySpace : bitSearch,
-	usedSpace : usedSearch
-
-
-};
+export const set = bitSet;
+export const clear = bitClear;
+export const emptySpace = bitSearch;
+export const usedSpace = usedSearch;

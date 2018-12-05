@@ -13,9 +13,12 @@ import path from 'path';
 import storage from 'electron-json-storage'; 
 import fs from 'fs';
 
+import { start, hello } from './modules/unknownfs/main';
+
 require('date-utils');
-const unknownfsReceiver = require('./modules/unknownfs/main')
-//unknownfsReceiver.start();
+//unknownfs.start();
+hello();
+start();
 
 /**
  * Set `__static` path to static files in production
@@ -107,6 +110,7 @@ ipcMain.on('scanStart', (event, message) => {
 });
 
 ipcMain.on('getQuarantine', (event, message) => {
+  console.log(square(11));
   console.log('ipcMain:openQuarantine');
   // TODO: Fix vaccine path
   const quarantinePath = path.join(__dirname, '../../vaccine/engine/tmp/');

@@ -1,6 +1,6 @@
-const fs = require('fs');
-const file = require('./file');
-const buffreverse = require('buffer-reverse/inplace');
+import { readSync, writeSync } from 'fs';
+import { blockNum, byteSet, buff2Hexa } from './file';
+import buffreverse from 'buffer-reverse/inplace';
 
 global.storageName = "C:/Users/NGA/Desktop/FileSystem/test.storage";		// 나중에 설치경로 받아와서 넣기.
 
@@ -16,10 +16,10 @@ function rootHeader(uuid,storageSize){
 	return new Promise(function(resolve,reject){
 
 		var s = storageSize; 															// s -> fullsize
-		var bn = file.blockNum(s); 														// 블록량 
+		var bn = blockNum(s); 														// 블록량 
 		var rs = s-(RHB+(Math.ceil(bn*HPB))+(Math.ceil(bn*BPB))+(NHB*Math.ceil(bn))); 	// rs -> 남은 사이즈
-		rs= file.byteSet(rs.toString(16)); 											
-		s=file.byteSet(s.toString(16));
+		rs= byteSet(rs.toString(16)); 											
+		s=byteSet(s.toString(16));
 
 		var tbuf1 = Buffer.from(uuid);
 		var ubuf = Buffer.concat([tbuf1],48);
@@ -47,7 +47,7 @@ function updateRootHeader(fd, usedSize){
 
 		try{
 
-			fs.readSync(fd, size, 0, 16, 64);
+			readSync(fd, size, 0, 16, 64);
 
 		}
 		catch(err){
@@ -59,12 +59,12 @@ function updateRootHeader(fd, usedSize){
 		size = buffreverse(size);			// 이전 사이즈
 
 
-		var newSize = file.byteSet((file.buff2Hexa(size)-usedSize).toString(16));
+		var newSize = byteSet((buff2Hexa(size)-usedSize).toString(16));
 		newSize = Buffer.from(newSize,'hex');
 
 		try{
 
-			fs.writeSync(fd, buffreverse(newSize),0, newSize.length, 64);	// 업데이트 사이즈.
+			writeSync(fd, buffreverse(newSize),0, newSize.length, 64);	// 업데이트 사이즈.
 
 		}
 		catch(err){
@@ -79,9 +79,5 @@ function updateRootHeader(fd, usedSize){
 
 }
 
-module.exports = {
-
-	update : updateRootHeader,
-	create : rootHeader
-
-};
+export const update = updateRootHeader;
+export const create = rootHeader;

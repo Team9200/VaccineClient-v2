@@ -1,18 +1,19 @@
-const fs= require('fs');
-const uuid= require('uuid');
-const buffreverse = require('buffer-reverse/inplace');
-const sha256File = require('sha256-file');
-const md5File = require('md5-file');
-const chokidar = require ('chokidar');
+import { openSync, closeSync, unlinkSync } from 'fs';
+import { v1 } from 'uuid';
+import buffreverse from 'buffer-reverse/inplace';
+import sha256File from 'sha256-file';
+import md5File from 'md5-file';
+import { watch } from 'chokidar';
+import path from 'path';
 
-const bit = require('./modules/bit-vector');
-const normalHeader = require('./modules/normalHeader');
-const rootHeader = require('./modules/rootHeader');
-const body = require('./modules/body');
-const file = require('./modules/file');
-const dirwatch = require('./modules/DirectoryWatcher')
+import { emptySpace, set, usedSpace } from './modules/bit-vector';
+import { create, set as _set, parse } from './modules/normalHeader';
+import { update } from './modules/rootHeader';
+import { fileCopy, extract as _extract } from './modules/body';
+import { getFileSize, headerBitMapSize, bodyBitMapSize, headerSize } from './modules/file';
+import dirwatch from './modules/DirectoryWatcher';
 
-global.storageName = "unknown.storage";
+global.storageName = "test.storage";
 
 global.RHB = 256;			// Root Header Bytes
 global.BPB = 1/8;			// Body per bitmap Bytes		 
@@ -25,20 +26,20 @@ function recive(unknownFileName){
 
 	return new Promise(async function(resolve, reject){
 
-		var storage = await fs.openSync(storageName,"r+");
-		var storageSize= await file.getFileSize(storageName);
+		var storage = await openSync(storageName,"r+");
+		var storageSize= await getFileSize(storageName);
 
-		var collector = uuid.v1();
-		var unknownFile = fs.openSync(unknownFileName,"r+");
-		var unknownFileSize = await file.getFileSize(unknownFileName);
+		var collector = v1();
+		var unknownFile = openSync(unknownFileName,"r+");
+		var unknownFileSize = await getFileSize(unknownFileName);
 		var date = 1543123401002;
 		var needSpace = Math.ceil(unknownFileSize/((1024*1024)-32));
 
 		//////////////////////////////////////////////////////////////////////////////////////////////
 		// bitMap Check..
 
-		var headerSpace = await bit.emptySpace(storage, storageSize, 1, "header");			// 	fd, storageSize, needSpace ,section 
-		var bodySpace = await bit.emptySpace(storage, storageSize, needSpace, "body");		// fd, storageSize, needSpace ,section 
+		var headerSpace = await emptySpace(storage, storageSize, 1, "header");			// 	fd, storageSize, needSpace ,section 
+		var bodySpace = await emptySpace(storage, storageSize, needSpace, "body");		// fd, storageSize, needSpace ,section 
 
 		if(headerSpace.length == 0){
 
@@ -51,42 +52,42 @@ function recive(unknownFileName){
 
 		}
 
-		var bodyStart = RHB + file.headerBitMapSize(storageSize) + file.bodyBitMapSize(storageSize) + file.headerSize(storageSize) + (BDB*bodySpace[0]);
-		var headerStart = RHB + file.headerBitMapSize(storageSize) + file.bodyBitMapSize(storageSize);
+		var bodyStart = RHB + headerBitMapSize(storageSize) + bodyBitMapSize(storageSize) + headerSize(storageSize) + (BDB*bodySpace[0]);
+		var headerStart = RHB + headerBitMapSize(storageSize) + bodyBitMapSize(storageSize);
 		//////////////////////////////////////////////////////////////////////////////////////////////
 		// bitMap Set..
 
-		await bit.set(storage, storageSize, headerSpace[0], "header");					// fd, storageSize, freeSpace, section
+		await set(storage, storageSize, headerSpace[0], "header");					// fd, storageSize, freeSpace, section
 
 		bodySpace.forEach(async function(freeSpace){									//fd, storageSize, freeSpace, section
 
-			await bit.set(storage, storageSize, freeSpace, "body");
+			await set(storage, storageSize, freeSpace, "body");
 
 		});
 
 		//////////////////////////////////////////////////////////////////////////////////////////////
 		// header set..
 
-		var headerBuffer = await normalHeader.create(collector, unknownFileName, unknownFileSize, bodyStart, date);
-		await normalHeader.set(storage, headerBuffer, headerSpace[0], headerStart);		//storage, buffer ,offset, start
+		var headerBuffer = await create(collector, unknownFileName, unknownFileSize, bodyStart, date);
+		await _set(storage, headerBuffer, headerSpace[0], headerStart);		//storage, buffer ,offset, start
 
 
 		//////////////////////////////////////////////////////////////////////////////////////////////
 		// body set..
 
-		await body.fileCopy(unknownFile, storage, bodySpace, unknownFileSize, storageSize);		// srcfd, dstfd, offset, srcSize, dstSize
+		await fileCopy(unknownFile, storage, bodySpace, unknownFileSize, storageSize);		// srcfd, dstfd, offset, srcSize, dstSize
 
 
 		//////////////////////////////////////////////////////////////////////////////////////////////
 		// root header update..
 
-		await rootHeader.update(storage, unknownFileSize)
+		await update(storage, unknownFileSize)
 
 		//////////////////////////////////////////////////////////////////////////////////////////////
 		
-		await fs.closeSync(unknownFile)
-		await fs.closeSync(storage);
-		await fs.unlinkSync(unknownFileName);		
+		await closeSync(unknownFile)
+		await closeSync(storage);
+		await unlinkSync(unknownFileName);		
 
 		console.log("recive Success.");
 
@@ -98,70 +99,73 @@ function recive(unknownFileName){
 }
 async function extract(){
 
-	var storage = await fs.openSync(storageName,"r+");
-	var storageSize= await file.getFileSize(storageName);
-	var unknownFile = await fs.openSync("output/unknown","w+");
+	var storage = await openSync(storageName,"r+");
+	var storageSize= await getFileSize(storageName);
+	var unknownFile = await openSync("output/unknown","w+");
 
-	var usedHeader = await bit.usedSpace(storage, storageSize);												// 사용중인 헤더들
+	var usedHeader = await usedSpace(storage, storageSize);												// 사용중인 헤더들
 
 	if(usedHeader.length == 0)
 
 		throw new Error('Dose not have a file'); //err
 
-	var headerStart = RHB + file.headerBitMapSize(storageSize) + file.bodyBitMapSize(storageSize);			// 헤더 시작주소
-	var header = await normalHeader.parse(storage, storageSize, headerStart, usedHeader[Math.floor(Math.random()*usedHeader.length)]);		// 추출할 헤더.
+	var headerStart = RHB + headerBitMapSize(storageSize) + bodyBitMapSize(storageSize);			// 헤더 시작주소
+	var header = await parse(storage, storageSize, headerStart, usedHeader[Math.floor(Math.random()*usedHeader.length)]);		// 추출할 헤더.
 
 	console.log("extracting...");
 
-	await body.extract(storage,unknownFile ,header.size, header.start);			// 추출.
+	await _extract(storage,unknownFile ,header.size, header.start);			// 추출.
 	console.log(1);
-	await fs.closeSync(storage);
-	await fs.closeSync(unknownFile);
+	await closeSync(storage);
+	await closeSync(unknownFile);
 
 	console.log("extract Success.");
 
 }
-exports.start = function (){
+export function start(){
+	const storagePath = path.join(__dirname, 'storage');
+	const watcher = watch(storagePath, {persistent: true});
 
-watcher = chokidar.watch('./storage', {persistent: true})
+	watcher
+		.on('add', function(path, stats) 
+			{ 
+				console.log('add',path);
 
- watcher
-    .on('add', function(path, stats) 
-        { 
-		 	console.log('add',path);
+				var file =path.split("\\")[1];
+				
+				if(file == "give"){
 
-			var file =path.split("\\")[1];
-		  	
-		  	if(file == "give"){
+					extract();
+					unlinkSync(path);
+				}
 
-		  		extract();
-		  		fs.unlinkSync(path);
-		  	}
+				else
+					recive(path);
+				})
 
-		  	else
-		  		recive(path);
-	        })
+		.on('change', function(path, stats) 
+			{ 
+				console.log('change');
+			})
+		.on('unlink', function(path, stats) 
+			{
+				console.log('delete.');
+			})
+		.on('error', function(error) 
+			{ 
+			console.log('chokidar watch error occurred ' + error);
+			})
+		.on('ready', function() 
+			{ 
+				console.log('Initial scan complete. Ready for changes.');
+			})
 
-    .on('change', function(path, stats) 
-        { 
-		 	console.log('change');
-        })
-    .on('unlink', function(path, stats) 
-		{
-		 	console.log('delete.');
-        })
-    .on('error', function(error) 
-        { 
-         console.log('chokidar watch error occurred ' + error);
-        })
-    .on('ready', function() 
-        { 
-            console.log('Initial scan complete. Ready for changes.');
-        })
-
-	console.log("Directory Monitoring of " + storageMonitor.root + " has started");
+		console.log("Directory Monitoring of storage has started");
 
 
 }
-
-//start();
+// start();
+// export const start = start;
+export function hello() {
+	console.log('import!');
+}

@@ -1,7 +1,7 @@
-const fs = require('fs');
-const uuid = require('uuid');
-const file = require('./modules/file');
-const root = require('./modules/rootHeader');
+import { appendFileSync, openSync, writeSync, closeSync } from 'fs';
+import { v1 } from 'uuid';
+import { getFileSize } from './modules/file';
+import { create } from './modules/rootHeader';
 
 function writeNullFile(fd,size){	// GB 단위
 
@@ -17,7 +17,7 @@ function writeNullFile(fd,size){	// GB 단위
 
 					try {
 
-						fs.appendFileSync(fd, buf);
+						appendFileSync(fd, buf);
 				    	console.log((index+1) .toFixed(2)+ " GB Created");
 				  
 				    	if(index == size -1){
@@ -53,7 +53,7 @@ async function createStorage(size){
 	
 	try{
 
-		var fd = fs.openSync("unknown.storage", "w+");
+		var fd = openSync("test.storage", "w+");
 		console.log("createStorage..");
 
 	}
@@ -66,14 +66,14 @@ async function createStorage(size){
 	var result = await writeNullFile(fd ,size);
 	console.log(result);
 
-	var size= await file.getFileSize("./unknown.storage");
-	var cuuid= uuid.v1();
-	var rootHeader = await root.create(cuuid,size);
+	var size= await getFileSize("./test.storage");
+	var cuuid= v1();
+	var rootHeader = await create(cuuid,size);
 	
-	await fs.writeSync(fd, rootHeader, 0, rootHeader.length, 0);
+	await writeSync(fd, rootHeader, 0, rootHeader.length, 0);
 	console.log("done.");
 
-	await fs.closeSync(fd);
+	await closeSync(fd);
 
 }
 

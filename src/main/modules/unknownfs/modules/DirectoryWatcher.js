@@ -22,10 +22,10 @@
 */
 
 // Imports / Requires
-var fs = require("fs"),
-    path = require("path"),
-    util = require("util"),
-    events = require("events");
+import { stat, exists as _exists, readdir } from "fs";
+import { sep, basename, dirname, extname, join } from "path";
+import { inherits } from "util";
+import { EventEmitter } from "events";
 
 // A File Detail Object to store details about a file
 // directory = parent directory of the file
@@ -119,7 +119,7 @@ var DirectoryWatcher = function (root, recursive) {
   var self = this;
 
   // Call the EvnetEmitter
-  events.EventEmitter.call(this);
+  EventEmitter.call(this);
 
   /*===========================================================================
     Non Exposed Methods (Private)
@@ -136,10 +136,10 @@ var DirectoryWatcher = function (root, recursive) {
   //                  true = Events will be suppressed
   //                  false = Events will be raised.
   var selectParentNode = function (dir, suppressEvents) {
-    var hierarchy = dir.split(path.sep);
+    var hierarchy = dir.split(sep);
         newPath = "";
     hierarchy.pop();
-    newPath = hierarchy.join(path.sep);
+    newPath = hierarchy.join(sep);
     return (selectCurrentNode(newPath, suppressEvents));  
   };
 
@@ -149,16 +149,16 @@ var DirectoryWatcher = function (root, recursive) {
   // NOTE: if the path/ isn't found THIS METHOD WILL ADD IT 
   //       to the directoryStructure
   var selectCurrentNode = function (dir, suppressEvents) {
-    var deepRoot = self.root.replace(path.basename(self.root), "");
+    var deepRoot = self.root.replace(basename(self.root), "");
     // create an array representing the folder hiearcy.
     // remove the root path so it's relative.  
-    var hierarchy = dir.replace(self.root, path.basename(self.root)).split(path.sep);
+    var hierarchy = dir.replace(self.root, basename(self.root)).split(sep);
     // set the current node to the directoryStructure root.
     var currentNode = self.directoryStructure;
     var currentPath = deepRoot;
     // loop through the hierarchy array
     for (var i = 0; i < hierarchy.length; i++) {
-      currentPath += hierarchy[i] + path.sep;
+      currentPath += hierarchy[i] + sep;
       // if the node (folder) doesn't exist create it.
       if (currentNode[hierarchy[i]] == null) {
         currentNode[hierarchy[i]] = {};
@@ -181,19 +181,19 @@ var DirectoryWatcher = function (root, recursive) {
   // callback = The callback function to call on completion  
   var recordFile = function (p, suppressEvents, callback) {
     // get the stats for the passed in file or folder
-    fs.stat(p, function (err, stats) {
+    stat(p, function (err, stats) {
       // throw any return errors.
       if (err) throw err;
       // if it's a file, create the FileDetail Object
       if (stats.isFile()) {
         // get the folder only portion of the passed in file
-        var dir = path.dirname(p);      
+        var dir = dirname(p);      
         fd = new FileDetail(
           dir,              // the base directory
           p,                // the full path
-          path.basename(p), // basename (name of file only)
+          basename(p), // basename (name of file only)
           stats.size,       // size in bytes
-          path.extname(p),  // extension
+          extname(p),  // extension
           stats.atime,      // The last access date / time
           stats.mtime,      // The last modified date / time
           stats.ctime       // the created date / time
@@ -252,7 +252,7 @@ var DirectoryWatcher = function (root, recursive) {
     // Because of this one day they *might* remove exists. if they
     // ever do, then we'll have to come back and update this call
     // to something else.
-    fs.exists(dir, function (exists) {
+    _exists(dir, function (exists) {
       if (!exists) {
         if (!suppressEvents) {
           self.emit("folderRemoved", dir);
@@ -278,7 +278,7 @@ var DirectoryWatcher = function (root, recursive) {
   //                  false = Events will be raised.
   var detectFileDelete = function (fd, suppressEvents) {
     // see comment in detectFolderDelete about exists method
-    fs.exists(fd.fullPath, function (exists) {
+    _exists(fd.fullPath, function (exists) {
       if (!exists) {
         if (!suppressEvents) {
           self.emit("fileRemoved", fd.fullPath);
@@ -310,7 +310,7 @@ var DirectoryWatcher = function (root, recursive) {
       } else {
         // if it's not an instance of FileDetail then it
         // is a directory node. route it to the appropriate detector
-        detectFolderDelete(dir + path.sep + key, key, suppressEvents);            
+        detectFolderDelete(dir + sep + key, key, suppressEvents);            
       }
     }    
   };
@@ -328,7 +328,7 @@ var DirectoryWatcher = function (root, recursive) {
   //                  true = Events will be suppressed
   //                  false = Events will be raised.
   this.scanDirectory = function (dir, suppressEvents) {    
-    fs.readdir(dir, function (err, files) {
+    readdir(dir, function (err, files) {
       // throw any errors that came up
       if (err) throw err;
       // get the number of files / folders in the directory
@@ -345,7 +345,7 @@ var DirectoryWatcher = function (root, recursive) {
         // event
         for (var f in files) {
           // Record the file
-          recordFile(path.join(dir, files[f]), suppressEvents, function () {
+          recordFile(join(dir, files[f]), suppressEvents, function () {
             // decrement the number of files to be recorded. since this
             // is an async function this is the only way I could figure
             // out to determine when we're done scanning a particular
@@ -395,7 +395,7 @@ var DirectoryWatcher = function (root, recursive) {
 };
 
 // Inherit the Event Emitter
-util.inherits(DirectoryWatcher, events.EventEmitter);
+inherits(DirectoryWatcher, EventEmitter);
 
 // Exports/Returns Object that watches a given directory for any
 // changes to files or folders in that directory
@@ -409,6 +409,7 @@ util.inherits(DirectoryWatcher, events.EventEmitter);
 //   folderAdded      : When a folder is added (recursive mode only)
 //   folderRemoved    : When a folder is removed (recursive mode only)
 //   scannedDirectory : When a directory has been scanned
-exports.DirectoryWatcher = function (root, recursive) {
+const _DirectoryWatcher = function (root, recursive) {
   return new DirectoryWatcher(root, recursive);
 };
+export { _DirectoryWatcher as DirectoryWatcher };

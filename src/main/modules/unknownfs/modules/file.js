@@ -1,8 +1,8 @@
-const fs= require('fs');
-const uuid= require('uuid');
-const buffreverse = require('buffer-reverse/inplace');
-const sha256File = require('sha256-file');
-const md5File = require('md5-file');
+import { statSync } from 'fs';
+import uuid from 'uuid';
+import buffreverse from 'buffer-reverse/inplace';
+import sha256File from 'sha256-file';
+import md5File from 'md5-file';
 
 global.storageName = "C:/Users/NGA/Desktop/FileSystem/test.storage";
 
@@ -12,7 +12,7 @@ global.NHB = 256; 			// Normal Header Bytes
 global.BDB = 1024*1024;		// Body Bytes;
 global.HPB = 1/32;			// header per bitmap Bytes
 
-function byteSet(hexStr){
+export function byteSet(hexStr){
 
 	if(hexStr.length % 2 != 0){
 
@@ -23,17 +23,17 @@ function byteSet(hexStr){
 
 }
 
-function buff2Hexa(buffer){
+export function buff2Hexa(buffer){
 
 	return parseInt("0x"+buffer.toString('hex'),16);
 
 }
 
-function getFileSize(filename) {			// get File Name / return File Size
+export function getFileSize(filename) {			// get File Name / return File Size
 
 	return new Promise(function(resolve, reject){
 
-	    const stats = fs.statSync(filename);
+	    const stats = statSync(filename);
 	    const fileSizeInBytes = stats.size;
 	    resolve(fileSizeInBytes);
 
@@ -41,7 +41,7 @@ function getFileSize(filename) {			// get File Name / return File Size
 
 }
 
-function blockNum(size){
+export function blockNum(size){
 
 	var root = RHB ;
 	var bitmap = BPB; 
@@ -53,47 +53,42 @@ function blockNum(size){
 
 }
 
-function bitMapSize(size){
+export function bitMapSize(size){
 
 	return Math.ceil(blockNum(size)/8);
 
 }
 
-function bodyBitMapSize(size){
+export function bodyBitMapSize(size){
 
 	return Math.ceil(blockNum(size)/8);
 
 }
-function headerBitMapSize(size){
+export function headerBitMapSize(size){
 
 	return Math.ceil(blockNum(size)/32);
 
 }
 
 
-function headerSize(size){
+export function headerSize(size){
 
 	return headerNum(size)*128;
 
 }
 
-function headerNum(size){
+export function headerNum(size){
 
 	return Math.ceil(blockNum(size)/4);
 
 }
 
-module.exports = {
-
-	buff2Hexa : buff2Hexa,
-	blockNum : blockNum,
-	bodyBitMapSize : bodyBitMapSize,
-	headerBitMapSize : headerBitMapSize,
-	headerSize : headerSize,
-	headerNum : headerNum,
-	getFileSize : getFileSize,
-	byteSet : byteSet
-
-
-};
+// export const buff2Hexa = buff2Hexa;
+// export const blockNum = blockNum;
+// export const bodyBitMapSize = bodyBitMapSize;
+// export const headerBitMapSize = headerBitMapSize;
+// export const headerSize = headerSize;
+// export const headerNum = headerNum;
+// export const getFileSize = getFileSize;
+// export const byteSet = byteSet;
 

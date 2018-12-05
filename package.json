@@ -58,6 +58,7 @@
     "axios": "^0.16.1",
     "babel-polyfill": "^6.26.0",
     "buffer-reverse": "^1.0.1",
+    "chokidar": "^2.0.4",
     "date-utils": "^1.2.21",
     "electron-json-storage": "^4.1.4",
     "md5-file": "^4.0.0",

@@ -1,7 +1,7 @@
-const fs=require('fs');
-const file = require('./modules/file');
-const normalHeader = require('./modules/normalHeader');
-const bit = require('./modules/bit-vector');
+import { openSync, writeSync } from 'fs';
+import { getFileSize, headerBitMapSize, bodyBitMapSize } from './modules/file';
+import { parse } from './modules/normalHeader';
+import { usedSpace } from './modules/bit-vector';
 
 global.storageName = "test.storage";
 
@@ -14,11 +14,11 @@ global.HPB = 1/32;			// header per bitmap Bytes
 
 async function headerJson(){
 
-	var storage = await fs.openSync(storageName,"r+");
-	var storageSize= await file.getFileSize(storageName);
-	var headerStart = RHB + file.headerBitMapSize(storageSize) + file.bodyBitMapSize(storageSize);
+	var storage = await openSync(storageName,"r+");
+	var storageSize= await getFileSize(storageName);
+	var headerStart = RHB + headerBitMapSize(storageSize) + bodyBitMapSize(storageSize);
 
-	var usedHeader = await bit.usedSpace(storage,storageSize);
+	var usedHeader = await usedSpace(storage,storageSize);
 
 	console.log(usedHeader);
 
@@ -26,13 +26,13 @@ async function headerJson(){
 
 	usedHeader.forEach(async function(freeSpace,index){
 
-		var header = await normalHeader.parse(storage , storageSize, headerStart, freeSpace);
+		var header = await parse(storage , storageSize, headerStart, freeSpace);
 		result[index] = header
 	});
 
-	var f= await fs.openSync('header.json',"w+");
+	var f= await openSync('header.json',"w+");
 	console.log(result);
-	fs.writeSync(f, JSON.stringify(result));
+	writeSync(f, JSON.stringify(result));
 
 }
 
