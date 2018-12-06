@@ -12,6 +12,8 @@ import os from 'os';
 import path from 'path';
 import storage from 'electron-json-storage'; 
 import fs from 'fs';
+// import io from 'socket.io-client';
+const WebSocket = require('ws');
 
 import { start, hello } from './modules/unknownfs/main';
 import { createStorage } from './modules/unknownfs/createStorage';
@@ -138,13 +140,45 @@ ipcMain.on('getLog', function (event, message) { //로그창 띄우기
 // Storage Node
 // createStorage(1);
 // start();
+let malwareMeta;
+let receivedData = new Array();
+let resultData;
+
+const ws = new WebSocket('ws://211.193.58.164:9090#123');
+
 ipcMain.on('storageWatch', function(event, message) {
   try{ fs.mkdirSync('./storage'); }catch(e){ if ( e.code != 'EEXIST' ) throw e; };
   try{ fs.mkdirSync('./output'); }catch(e){ if ( e.code != 'EEXIST' ) throw e; };
+  // console.log(socket.connected);
+  setInterval(function() {
+    ws.send(JSON.stringify({
+      type: 'alive',
+      peerId: 'peerId'
+    }));
+  }, 3000)
   hello();
   start();
+  
 })
 
+ipcMain.on('receiveFile', function(event, message) {
+  console.log(message);
+  if (message.type == 'meta') { 
+    console.log('meta received', "message type", typeof(message));
+    malwareMeta = message;
+  }
+  else {
+    receivedData = receivedData.concat(message.binary.data);
+
+    if(receivedData.length == message.size) {
+      console.log("test", receivedData);
+      resultData = new Buffer.from(receivedData);
+      fs.writeFileSync('./mxalware.zip', resultData);
+      event.sender.send('receivedFile-reply', 'test');
+      console.log('Receive Unknown File Well');	
+    }
+  }
+})
 
 // Default
 

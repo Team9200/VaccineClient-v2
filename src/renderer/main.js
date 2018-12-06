@@ -10,6 +10,8 @@ import store from './store'
 
 import colors from 'vuetify/es5/util/colors'
 
+import VueWebsocket from "vue-websocket";
+
 Vue.use(Vuetify, {theme: {
   primary: colors.green.darken1
 }});
