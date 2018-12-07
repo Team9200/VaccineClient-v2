@@ -12,14 +12,13 @@ import os from 'os';
 import path from 'path';
 import storage from 'electron-json-storage'; 
 import fs from 'fs';
-// import io from 'socket.io-client';
-const WebSocket = require('ws');
+import zipFolder from 'zip-folder';
+import WebSocket from 'ws';
 
 import { start, hello } from './modules/unknownfs/main';
 import { createStorage } from './modules/unknownfs/createStorage';
 
 require('date-utils');
-
 // //unknownfs.start();
 
 /**
@@ -82,8 +81,11 @@ ipcMain.on('reload', (event, message) => {
 });
 
 // Collector Node
+// scan
 ipcMain.on('scanStart', (event, message) => {
   console.log('ipcMain:scanStart', message);
+  try{ fs.mkdirSync('./tmpUnknown'); }catch(e){ if ( e.code != 'EEXIST' ) throw e; };
+  const tmpUnknownDir = path.join(__dirname, '../../tmpUnknown');
   const scanPath = message.path;
   const vaccinePath = message.vaccinePath;
   const options = {
@@ -93,9 +95,10 @@ ipcMain.on('scanStart', (event, message) => {
   };
   PythonShell.run('linvlib.py', options, function (err, results) {
     if (err) console.log(err);
-    const scanResult = results.toString().replace(/'/gi, '"').replace(/u\"/gi, '"');
-    console.log('Scan Result: ', scanResult);
+    const scanResultStr = results.toString().replace(/'/gi, '"').replace(/u\"/gi, '"');
+    const scanResultJSON = JSON.parse(scanResultStr);
 
+    //scan log
     const logPath = path.join(__dirname, '../../vaccine/log.json');
     const dt = new Date().toFormat('YYYY-MM-DD HH24:MI:SS');
 
@@ -105,12 +108,28 @@ ipcMain.on('scanStart', (event, message) => {
       if(err) console.log(err);
       const existingLogJson = JSON.parse(data);
       existingLogJson.push(newLog);
-      fs.writeFile(logPath, JSON.stringify(existingLogJson));
+      fs.writeFileSync(logPath, JSON.stringify(existingLogJson));
     });
-    event.sender.send('scanResult', scanResult, (err) => {console.log(err)});
+    console.log('Scan Result:', scanResultJSON);
+    
+    //make unknown.zip
+    scanResultJSON.UnknownPaths.forEach((v, i) => {
+      console.log(__dirname);
+      console.log('src :', v);
+      console.log('dst : ', path.join(__dirname, '../../tmpUnknown', v.split('\\').pop()));
+      fs.createReadStream(v).pipe(fs.createWriteStream(path.join(__dirname, '../../tmpUnknown', v.split('\\').pop())));
+      console.log(fs.copyFileSync)//(v, './tmpUnknown');
+    });
+
+    zipFolder(tmpUnknownDir, path.join(__dirname, '../../tmpMalware.zip'), (err) => { 
+      if(err) console.log(err); deleteFolderRecursive(tmpUnknownDir);
+    });    
+    
+    event.sender.send('scanResult', scanResultStr, (err) => {console.log(err)});
   });
 });
 
+// quarantine
 ipcMain.on('getQuarantine', (event, message) => {
   console.log('ipcMain:openQuarantine');
   // TODO: Fix vaccine path
@@ -127,6 +146,7 @@ ipcMain.on('getQuarantine', (event, message) => {
   })
 });
 
+// log
 ipcMain.on('getLog', function (event, message) { //로그창 띄우기
   const logPath = path.join(__dirname, '../../vaccine/log.json');
 
@@ -173,7 +193,7 @@ ipcMain.on('receiveFile', function(event, message) {
     if(receivedData.length == message.size) {
       console.log("test", receivedData);
       resultData = new Buffer.from(receivedData);
-      fs.writeFileSync('./mxalware.zip', resultData);
+      fs.writeFileSync('./malware.zip', resultData);
       event.sender.send('receivedFile-reply', 'test');
       console.log('Receive Unknown File Well');	
     }
@@ -223,3 +243,19 @@ app.on('ready', () => {
   if (process.env.NODE_ENV === 'production') autoUpdater.checkForUpdates()
 })
  */
+
+
+var deleteFolderRecursive = function(dirPath) {
+  if( fs.existsSync(dirPath) ) {
+    fs.readdirSync(dirPath).forEach(function(file,index){
+      var curPath = dirPath + "/" + file;
+      if(fs.lstatSync(curPath).isDirectory()) { // recurse
+        deleteFolderRecursive(curPath);
+      } else { // delete file
+        console.log(curPath);
+        fs.unlinkSync(curPath);
+      }
+    });
+    fs.rmdirSync(dirPath);
+  }
+};

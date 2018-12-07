@@ -55,6 +55,7 @@
     }
   },
   "dependencies": {
+    "archiver": "^3.0.0",
     "axios": "^0.16.1",
     "babel-polyfill": "^6.26.0",
     "buffer-reverse": "^1.0.1",
@@ -62,6 +63,7 @@
     "date-utils": "^1.2.21",
     "electron-json-storage": "^4.1.4",
     "md5-file": "^4.0.0",
+    "node-zip": "^1.1.1",
     "python-shell": "^1.0.6",
     "sha256-file": "^1.0.0",
     "socket.io": "^2.2.0",
@@ -73,7 +75,8 @@
     "vue-websocket": "^0.2.3",
     "vuetify": "1.2.5",
     "vuex": "^2.3.1",
-    "ws": "^6.1.2"
+    "ws": "^6.1.2",
+    "zip-folder": "^1.0.0"
   },
   "devDependencies": {
     "@types/socket.io-client": "^1.4.32",

@@ -172,10 +172,10 @@
                                 type: "leave", 
                                 name: name
                             });   
-                            send({
-                                type: "login",
-                                name: name
-                            });
+                            // send({
+                            //     type: "login",
+                            //     name: name
+                            // });
                         };
                     };
                 
