@@ -50,7 +50,6 @@
                     </v-list-tile>
                 </v-list>
             </v-card>
-            <p v-text="scannedPaths"></p>
         </v-flex>
     </v-layout>
 </template>
@@ -59,33 +58,30 @@
     export default {
         name: 'storage-home-view',
         data: () => ({
-            send_link: '/send-wallet',
-            scannedPaths: 'scannedpath'
+            send_link: '/send-wallet'
         }),
         mounted () {
             this.$electron.ipcRenderer.send('storageWatch');
             this.$electron.ipcRenderer.send('waitCollector');
             this.$electron.ipcRenderer.send('getFSHeader');
-            this.transfer();
-        },
-        methods: {
-            transfer() {
+            this.signalingServer();
+            this.$electron.ipcRenderer.on('collectorPid', (event, cPid) => {
                 let yourConn;
                 let dataChannel;
                 //our username  
-                var name = 'test2'; 
+                var name = '#' + cPId; 
                 var connectedUser; 
 
                 //connecting to our signaling server 
-                var conn = new WebSocket('ws://211.193.58.164:9090'); 
+                var conn = new WebSocket('ws://localhost:19200'); 
 
                 //signaling server open
                 conn.onopen = function () { 
-                console.log("Connected to the signaling server");
-                send({ 
-                    type: "login", 
-                    name: name
-                });        
+                    console.log("Connected to the signaling server");
+                    send({ 
+                        type: "login", 
+                        name: name
+                    });        
                 };
 
                 //signaling server message handle
@@ -94,133 +90,256 @@
                     var data = JSON.parse(msg.data); 
                     
                     switch(data.type) { 
-                    case "login": 
-                        handleLogin(data.success); 
-                        break; 
-                    //when somebody wants to call us 
-                    case "offer": 
-                        handleOffer(data.offer, data.name); 
-                        break; 
-                    case "answer": 
-                        handleAnswer(data.answer); 
-                        break; 
-                    //when a remote peer sends an ice candidate to us 
-                    case "candidate": 
-                        handleCandidate(data.candidate); 
-                        break; 
-                    case "leave": 
-                        handleLeave(); 
-                        break; 
-                    default: 
-                        break; 
+                        case "login": 
+                            handleLogin(data.success); 
+                            break; 
+                        //when somebody wants to call us 
+                        case "offer": 
+                            handleOffer(data.offer, data.name); 
+                            break; 
+                        case "answer": 
+                            handleAnswer(data.answer); 
+                            break; 
+                        //when a remote peer sends an ice candidate to us 
+                        case "candidate": 
+                            handleCandidate(data.candidate); 
+                            break; 
+                        case "leave": 
+                            handleLeave(); 
+                            break; 
+                        default: 
+                            break; 
                     } 
                 }; 
 
                 //signaling server conn error
                 conn.onerror = function (err) { 
-                console.log("Got error", err); 
+                    console.log("Got error", err); 
                 }; 
 
                 //message send to signaling server
                 function send(message) { 
-
-                //attach the other peer username to our messages
-                if (connectedUser) { 
-                    message.name = connectedUser; 
-                } 
-                    
+                    //attach the other peer username to our messages
+                    if (connectedUser) { 
+                        message.name = connectedUser; 
+                    } 
                     conn.send(JSON.stringify(message)); 
                 };
 
                 function handleLogin(success) { 
-                if (success === false) {
-                    console.log("Ooops...try a different username");
-                    process.exit(1); 
-                } else {
-                    //using Google public stun server 
-                    var configuration = { 
-                        "iceServers": [{ "url": "stun:stun2.1.google.com:19302" }] 
-                    }; 
+                    if (success === false) {
+                        console.log("Ooops...try a different username");
+                        process.exit(1); 
+                    } else {
+                        //using Google public stun server 
+                        var configuration = { 
+                            "iceServers": [{ "url": "stun:stun2.1.google.com:19302" }] 
+                        }; 
+                            
+                        yourConn = new webkitRTCPeerConnection(configuration); 
+
+                        // Setup ice handling 
+                        yourConn.onicecandidate = function (event) { 
+                            if (event.candidate) { 
+                                send({ 
+                                type: "candidate", 
+                                candidate: event.candidate 
+                                }); 
+                            } 
+                        }; 
                         
-                    yourConn = new webkitRTCPeerConnection(configuration); 
+                        //creating data channel 
+                        console.log(yourConn.signalingState);
 
-                    // Setup ice handling 
-                    yourConn.onicecandidate = function (event) { 
-                        if (event.candidate) { 
-                            send({ 
-                            type: "candidate", 
-                            candidate: event.candidate 
-                            }); 
-                        } 
-                    }; 
-                    
-                    //creating data channel 
-                    console.log(yourConn.signalingState);
-
-                    dataChannel = yourConn.createDataChannel("channel1"); 
-                    
-                    dataChannel.onerror = function (error) { 
-                        console.log("Ooops...error:", error); 
-                    }; 
-                            
-                    yourConn.ondatachannel = function (event) {
-                        event.channel.onopen = function() {
-                            console.log('Data channel is open and ready to be used.');         
+                        dataChannel = yourConn.createDataChannel("channel1"); 
+                        
+                        dataChannel.onerror = function (error) { 
+                            console.log("Ooops...error:", error); 
+                        }; 
+                                
+                        yourConn.ondatachannel = function (event) {
+                            event.channel.onopen = function() {
+                                console.log('Data channel is open and ready to be used.');         
+                            };
+                                
+                            event.channel.onmessage = function(event){
+                                console.log(connectedUser + ": " + event.data);
+                                ipcRenderer.send('receiveFile', JSON.parse(event.data));
+                            };
                         };
-                            
-                        event.channel.onmessage = function(event){
-                            console.log(connectedUser + ": " + event.data);
+                    
+                        //when we receive a message from the other peer, display it on the screen 
+                        /*
+                        dataChannel.onmessage = function (event) { 
+                            chatArea.innerHTML += connectedUser + ": " + event.data + "<br />"; 
                             ipcRenderer.send('receiveFile', JSON.parse(event.data));
-                            send({ 
-                                type: "leave", 
-                                name: name
-                            });   
-                            send({
-                                type: "login",
-                                name: name
-                            });
+                        }; 
+                            */
+                        dataChannel.onclose = function () { 
+                            console.log("data channel is closed"); 
                         };
-                    };
-                
-                    //when we receive a message from the other peer, display it on the screen 
-                    /*
-                    dataChannel.onmessage = function (event) { 
-                        chatArea.innerHTML += connectedUser + ": " + event.data + "<br />"; 
-                        ipcRenderer.send('receiveFile', JSON.parse(event.data));
-                    }; 
-                        */
-                    dataChannel.onclose = function () { 
-                        console.log("data channel is closed"); 
-                    };
-                } 
+                    } 
                 };
 
                 function handleOffer(offer, name) { 
-                connectedUser = name; 
-                yourConn.setRemoteDescription(new RTCSessionDescription(offer)); 
-                    
-                //create an answer to an offer 
-                yourConn.createAnswer(function (answer) { 
-                    yourConn.setLocalDescription(answer); 
-                    send({ 
-                        type: "answer", 
-                        answer: answer 
-                    }); 
-                }, function (error) { 
-                    console.log("Error when creating an answer"); 
-                });
+                    connectedUser = name; 
+                    yourConn.setRemoteDescription(new RTCSessionDescription(offer)); 
+                        
+                    //create an answer to an offer 
+                    yourConn.createAnswer(function (answer) { 
+                        yourConn.setLocalDescription(answer); 
+                        send({ 
+                            type: "answer", 
+                            answer: answer 
+                        }); 
+                    }, function (error) { 
+                        console.log("Error when creating an answer"); 
+                    });
                 };
 
                 function handleAnswer(answer) { 
-                yourConn.setRemoteDescription(new RTCSessionDescription(answer)); 
+                    yourConn.setRemoteDescription(new RTCSessionDescription(answer)); 
                 };
                 
                 //when we got an ice candidate from a remote user 
                 function handleCandidate(candidate) { 
-                yourConn.addIceCandidate(new RTCIceCandidate(candidate)); 
+                    yourConn.addIceCandidate(new RTCIceCandidate(candidate)); 
                 };
+            });
+        },
+        methods: {
+            signalingServer() {
+                var WebSocketServer = require('ws').Server;
+                var wss = new WebSocketServer({port: 19200}); 
+                var users = {};
 
-            }
+                //when a user connects to our sever 
+                wss.on('connection', function(connection) {
+                    console.log("User connected");
+                    
+                    //when server gets a message from a connected user 
+                    connection.on('message', function(message) {
+                        var data; 
+                        //accepting only JSON messages 
+                        try { 
+                            data = JSON.parse(message); 
+                        } catch (e) { 
+                            console.log("Invalid JSON"); 
+                            data = {}; 
+                        }
+                            
+                        //switching type of the user message 
+                        switch (data.type) { 
+                            case "login": 
+                                console.log("User logged", data.name); 
+                                //if anyone is logged in with this username then refuse 
+                                if(users[data.name]) { 
+                                    sendTo(connection, { 
+                                        type: "login", 
+                                        success: false 
+                                    }); 
+                                } else { 
+                                    //save user connection on the server 
+                                    users[data.name] = connection; 
+                                    connection.name = data.name; 
+                                            
+                                    sendTo(connection, { 
+                                            type: "login", 
+                                            success: true 
+                                        }); 
+                                }
+                                    
+                                break;
+                                    
+                            case "offer": 
+                                console.log("Sending offer to: ", data.name); 
+                                    
+                                var conn = users[data.name]; 
+                                    
+                                if(conn != null) { 
+                                    //setting that UserA connected with UserB 
+                                    connection.otherName = data.name; 
+                                            
+                                    sendTo(conn, { 
+                                            type: "offer", 
+                                            offer: data.offer, 
+                                            name: connection.name 
+                                        }); 
+                                } 
+                                break;
+                                    
+                            case "answer": 
+                                console.log("Sending answer to: ", data.name); 
+                                var conn = users[data.name]; 
+                                if(conn != null) { 
+                                connection.otherName = data.name; 
+                                    sendTo(conn, { 
+                                        type: "answer", 
+                                        answer: data.answer 
+                                    }); 
+                                } 
+                                break;
+                                    
+                            case "candidate": 
+                                console.log("Sending candidate to:",data.name);
+                                var conn = users[data.name];  
+                                    
+                                if(conn != null) { 
+                                    sendTo(conn, { 
+                                        type: "candidate", 
+                                        candidate: data.candidate 
+                                    }); 
+                                } 
+                                break;
+                                    
+                            case "leave": 
+                                console.log("Disconnecting from", data.name); 
+                                var conn = users[data.name]; 
+                                conn.otherName = null; 
+                                    
+                                //notify the other user so he can disconnect his peer connection 
+                                if(conn != null) { 
+                                    sendTo(conn, { 
+                                        type: "leave"
+                                    });
+                                }  
+                                break;
+                                    
+                            default: 
+                                sendTo(connection, { 
+                                    type: "error", 
+                                    message: "Command not found: " + data.type 
+                                }); 
+                                    
+                                break;
+                        }  
+                    });
+                    
+                    //when user exits, for example closes a browser window 
+                    //this may help if we are still in "offer","answer" or "candidate" state 
+                    connection.on("close", function() { 
+                        if(connection.name) { 
+                            delete users[connection.name]; 
+                                
+                            if(connection.otherName) { 
+                                console.log("Disconnecting from ", connection.otherName); 
+                                var conn = users[connection.otherName]; 
+                                conn.otherName = null;
+                                    
+                                if(conn != null) { 
+                                sendTo(conn, { 
+                                    type: "leave" 
+                                }); 
+                                }  
+                            } 
+                        } 
+                    });
+                });
+                
+                function sendTo(connection, message) { 
+                    connection.send(JSON.stringify(message)); 
+                }
+            },
         }
     }
 </script>

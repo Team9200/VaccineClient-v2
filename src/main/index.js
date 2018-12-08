@@ -13,17 +13,15 @@ import path from 'path';
 import storage from 'electron-json-storage'; 
 import fs from 'fs';
 import zipFolder from 'zip-folder';
-import WebSocket from 'ws';
 import express from 'express';
 
-import { start, hello } from './modules/unknownfs/main';
+import { start } from './modules/unknownfs/main';
 import { createStorage } from './modules/unknownfs/createStorage';
 import { headerJson } from './modules/unknownfs/headerParse';
 
 import http from 'http';
 
 require('date-utils');
-// //unknownfs.start();
 
 /**
  * Set `__static` path to static files in production
@@ -92,8 +90,7 @@ ipcMain.on('reload', (event, message) => {
   }
 });
 
-// Collector Node
-// scan
+// get Vaccine Path
 let vaccinePath;
 storage.has('vaccine', function (err, hasKey) {
   if (err) throw err;
@@ -105,12 +102,15 @@ storage.has('vaccine', function (err, hasKey) {
   }
 });
 
+
+// Collector Node
+// scan
+
 ipcMain.on('scanStart', (event, message) => {
   console.log('ipcMain:scanStart', message);
   try{ fs.mkdirSync('./tmpUnknown'); }catch(e){ if ( e.code != 'EEXIST' ) throw e; };
   const tmpUnknownDir = path.join(__dirname, '../../tmpUnknown');
   const scanPath = message.path;
-  // const vaccinePath = message.vaccinePath;
   const options = {
     mode: 'text',
     scriptPath: path.join(vaccinePath, '\\engine'),
@@ -141,7 +141,7 @@ ipcMain.on('scanStart', (event, message) => {
       console.log('src :', v);
       console.log('dst : ', path.join(__dirname, '../../tmpUnknown', v.split('\\').pop()));
       fs.createReadStream(v).pipe(fs.createWriteStream(path.join(__dirname, '../../tmpUnknown', v.split('\\').pop())));
-      console.log(fs.copyFileSync)//(v, './tmpUnknown');
+      console.log(fs.copyFileSync);
     });
 
     zipFolder(tmpUnknownDir, path.join(__dirname, '../../tmpMalware.zip'), (err) => { 
@@ -152,14 +152,34 @@ ipcMain.on('scanStart', (event, message) => {
   });
 });
 
-const trackerIP = '192.168.2.131'
+const trackerIP = '192.168.2.131';
+
 ipcMain.on('transferRequestToTracker', (event, message) => {
   const trakerURL = 'http://' + trackerIP + ':29200/sendToStorage?senderPeerId=' + publicKey;
   http.get(trakerURL, (response) => {
-    response.on('data', (chunk) => {
-      console.log(chunk.toString());
+    response.on('data', (storageInfo) => {
+      console.log(JSON.parse(storageInfo).SignalingServerURL);
+      setTimeout(() => {event.sender.send('getCPid', 'ws://' + JSON.parse(storageInfo).SignalingServerURL, publicKey);}, 5000)
     });
   });
+});
+
+const chunkSize = 16384;
+var sliced_data = '';
+var pieceNum = 0;
+ipcMain.on('fileRequest', function(event, msg) {
+    console.log('fileREQ In');
+    fs.readFile(path.join(__dirname, '../../tmpMalware.zip'), function(err, data) {
+        console.log(path.join(__dirname, '../../tmpMalware.zip'));
+        console.log(data);
+        var encoded_data = base64Encode(data);
+        event.sender.send('fileRequest-meta', 'meta', 'Malware.zip', Buffer.from(data).length, Math.ceil((Buffer.from(data).length/chunkSize)));
+        for(var i=0, j=0; i<encoded_data.length; i+=chunkSize, j++) {
+            sliced_data = sliceEncodedData(encoded_data, i);
+            event.sender.send('fileRequest-reply', pieceNum, sliced_data);
+            pieceNum = pieceNum + 1;
+        }
+    });
 });
 
 // quarantine
@@ -198,36 +218,37 @@ let malwareMeta;
 let receivedData = new Array();
 let resultData;
 
-// const ws = new WebSocket('http://192.168.2.2:29200');
-
-ipcMain.on('storageWatch', function(event, message) {
-  try{ fs.mkdirSync('./storage'); }catch(e){ if ( e.code != 'EEXIST' ) throw e; };
-  try{ fs.mkdirSync('./output'); }catch(e){ if ( e.code != 'EEXIST' ) throw e; };
-  // console.log(socket.connected);
-  // setInterval(function() {
-  //   ws.send(JSON.stringify({
-  //     type: 'alive',
-  //     peerId: 'peerId'
-  //   }));
-  // }, 3000)
-  hello();
-  start();
-  
-});
+const storageSize = 1;
+const mining = true;
 
 const expressApp = express();
 const expressPort = 39200;
 
-ipcMain.on('waitCollector', function(event, message) {
+ipcMain.on('storageWatch', function(event, message) {
+  try{ fs.mkdirSync('./storage'); }catch(e){ if ( e.code != 'EEXIST' ) throw e; };
+  try{ fs.mkdirSync('./output'); }catch(e){ if ( e.code != 'EEXIST' ) throw e; };
+  setInterval(function() {
+    const trakerURL = 'http://' + trackerIP + ':29200/report?peerId=' + publicKeyS + '&nodeType=storage&storageSize=' + storageSize + '&remainingStorageSize=' + 100000 + '&mining=' + mining;
+    http.get(trakerURL, (response) => {
+      response.on('data', (chunk) => {
+        console.log(chunk.toString());
+      });
+    });
+  }, 20000);
+
   expressApp.listen(expressPort, () => {
     console.log('express server start');
   });
 
   expressApp.get('/sendRequest', (request, response) => {
-    var roomName = request.query.roomName;
-    console.log('요청이 들어왔습니다');
+    const roomName = request.query.roomName;
+    console.log(roomName);
+    event.sender.send('collectorPid', roomName);
     response.send('test send');
   });
+
+  start();
+  
 });
 
 ipcMain.on('receiveFile', function(event, message) {
@@ -239,15 +260,16 @@ ipcMain.on('receiveFile', function(event, message) {
   else {
     receivedData = receivedData.concat(message.binary.data);
 
-    if(receivedData.length == message.size) {
+    if(receivedData.length == malwareMeta.size) {
       console.log("test", receivedData);
       resultData = new Buffer.from(receivedData);
       fs.writeFileSync('./malware.zip', resultData);
-      event.sender.send('receivedFile-reply', 'test');
+      // event.sender.send('receivedFile-reply', 'test');
       console.log('Receive Unknown File Well');	
     }
   }
 })
+
 
 ipcMain.on('getFSHeader', function(event, message) {
   headerJson();
@@ -299,6 +321,10 @@ app.on('ready', () => {
  */
 
 
+/////////////////////////
+////// etc func /////////
+/////////////////////////
+
 var deleteFolderRecursive = function(dirPath) {
   if( fs.existsSync(dirPath) ) {
     fs.readdirSync(dirPath).forEach(function(file,index){
@@ -312,4 +338,12 @@ var deleteFolderRecursive = function(dirPath) {
     });
     fs.rmdirSync(dirPath);
   }
+};
+
+function base64Encode(data) {
+  return new Buffer.from(data);
+ }; 
+
+function sliceEncodedData(encoded_data, offset) {
+  return encoded_data.slice(offset, offset+chunkSize);
 };
