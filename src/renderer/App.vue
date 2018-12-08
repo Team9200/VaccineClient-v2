@@ -114,21 +114,6 @@
       </v-footer>
     </v-app>
 
-    <v-dialog v-model="first" persistent scrollable max-width="300px">
-      <v-card>
-        <v-card-title>First Setting</v-card-title>
-        <v-divider></v-divider>
-        <v-card-text style="height: 300px;">
-          <h2 style="padding-bottom: 10px;">Vaccine Engine Path</h2>
-          <input type="file" @change="pathIn($event)" directory webkitdirectory>
-        </v-card-text>
-        <v-divider></v-divider>
-        <v-card-actions>
-          <v-btn color="green darken-1" flat @click="clickFirstSave">Save</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-
     <refresh-view :model="refresh"></refresh-view>
   </div>
 </template>
@@ -194,14 +179,6 @@
       const vm = this;
       storage.has('mode', function (err, hasKey) {
         if (err) throw err;
-        if (!hasKey) {
-          if (process.env.NODE_ENV === 'production') {
-            storage.setDataPath(os.tmpdir());
-          }
-          storage.set('mode', {
-            mode: 'collector'
-          });
-        }
         if (hasKey) {
           storage.get('mode', function (err, data) {
             if (err) throw err;
@@ -211,7 +188,7 @@
         }
       });
 
-      storage.has('vaccine', function (err, hasKey) {
+      storage.has('setting', function (err, hasKey) {
         if (err) throw err;
         if (!hasKey) {
           vm.first = true;
@@ -225,13 +202,6 @@
       refreshing: function () {
         ipcRenderer.send('reload', 'ping');
       },
-      clickFirstSave: function() {
-        const vm = this;
-        storage.set('vaccine', {path: this.vaccinePath}, function (err) {
-          if (err) throw err;
-          vm.first = false;
-        });
-      }
     },
     watch: {
       refresh (val) {
@@ -239,8 +209,9 @@
 
         setTimeout(() => {
           this.refresh = false;
-          this.refreshing();
-        }, 3000);
+          window.location.reload()
+          // this.refreshing();
+        }, 2000);
       },
       mode (value) {
         var appname = 'LinearVaccine';
@@ -257,6 +228,10 @@
           default:
             break;
         }
+      },
+      first (value) {
+        if (!value) return
+        if (value === true) this.$router.push('/first')
       }
     }
   }

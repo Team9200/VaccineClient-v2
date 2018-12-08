@@ -51,6 +51,11 @@ export default new Router({
       component: require('@/components/SettingView').default
     },
     {
+      path: '/first',
+      name: 'first-view',
+      component: require('@/components/FirstView').default
+    },
+    {
       path: '/error',
       name: 'error-view',
       component: require('@/components/ErrorView').default

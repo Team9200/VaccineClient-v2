@@ -12,6 +12,9 @@
     <script>
       const { ipcRenderer } = require('electron');
       const storage = require('electron-json-storage');
+      if (process.env.NODE_ENV === 'production') {
+        storage.setDataPath(os.tmpdir());
+      }
     </script>
   </head>
   <body>

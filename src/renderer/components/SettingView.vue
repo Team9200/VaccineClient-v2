@@ -21,12 +21,12 @@
                             </v-list-tile-sub-title>
                         </v-list-tile-content>
 
-                        
+
                     </v-list-tile>
                 </v-list>
             </v-card>
 
-            <v-card>
+            <!-- <v-card>
                 <v-list two-line>
                     <v-list-tile>
                         <v-list-tile-action>
@@ -59,7 +59,7 @@
                         </v-dialog>
                     </v-list-tile>
                 </v-list>
-            </v-card>
+            </v-card> -->
 
             <v-card>
                 <v-list two-line>
@@ -108,32 +108,13 @@
                 </v-list>
             </v-card>
 
-            <v-card>
-                <v-list two-line>
-                    <v-list-tile>
-                        <v-list-tile-action>
-                            <v-icon color="green">info</v-icon>
-                        </v-list-tile-action>
-
-                        <v-list-tile-content>
-                            <v-list-tile-title>Application Info</v-list-tile-title>
-                            <v-list-tile-sub-title>About This Application</v-list-tile-sub-title>
-                        </v-list-tile-content>
-                        
-                        <v-btn @click="dialog.about = true" color="primary" dark>Open Dialog</v-btn>
-
-                    </v-list-tile>
-                </v-list>
-            </v-card>
         </v-flex>
         <refresh-view :model="refresh" :message="refreshString"></refresh-view>
-        <about-view :model="dialog.about"></about-view>
     </v-layout>
 </template>
 
 <script>
     import RefreshView from './RefreshView';
-    import AboutView from './AboutView';
     export default {
         name: 'setting-view',
         data() {
@@ -143,16 +124,14 @@
                 path: '',
                 dialog: {
                     node: false,
-                    vaccine: false,
-                    about: false      
+                    vaccine: false
                 },
                 refresh: false,
                 refreshString: 'Saving data..'
             }
         },
         components: {
-            RefreshView,
-            AboutView
+            RefreshView
         },
         methods: {
             setMode: function () {
@@ -199,7 +178,7 @@
             });
         },
         watch: {
-            refresh (val) {
+            refresh(val) {
                 if (!val) return
 
                 setTimeout(() => {

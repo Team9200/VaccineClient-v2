@@ -3,33 +3,33 @@
         <v-flex xs12>
             <!-- <h1>Vaccine</h1> -->
             <!-- scan -->
+
             <v-card>
                 <v-card-title primary-title>
                     <div>
                         <input type="file" @change="pathIn($event)" directory webkitdirectory>
                     </div>
                 </v-card-title>
-    
+
                 <v-card-actions>
                     <v-dialog v-model="dialog" width="700">
                         <v-btn @click="scanStart()" slot="activator" color="green" dark>
                             Detect
                         </v-btn>
-    
+
                         <v-card>
                             <v-card-title class="headline">
                                 Send Report
                             </v-card-title>
-    
+
                             <v-card-text>
-                                * 검사 결과 
-                                <!-- <ul><li v-for="scannedpath in scannedPaths">{{ scannedpath }}</li></ul>  -->
+                                * 검사 결과
                                 <p v-text="scannedPaths"></p>
                                 검사 결과를 보내실 겁니까?
                             </v-card-text>
-    
+
                             <v-divider></v-divider>
-    
+
                             <v-card-actions>
                                 <v-spacer></v-spacer>
                                 <v-btn color="green" flat @click="dialog = false">
@@ -83,7 +83,7 @@
                     </v-dialog>
                 </v-card-actions>
             </v-card> -->
- 
+
         </v-flex>
     </v-layout>
 </template>
@@ -111,7 +111,10 @@
             },
             scanStart() {
                 // console.log('scan clicked', this.scanPath);
-                ipcRenderer.send('scanStart', {path: this.scanPath, vaccinePath: this.vaccinePath});
+                ipcRenderer.send('scanStart', {
+                    path: this.scanPath,
+                    vaccinePath: this.vaccinePath
+                });
             },
             // quarantine() {
             //     ipcRenderer.send('openQuarantine');
@@ -120,11 +123,11 @@
             //     ipcRenderer.send('getLog');
             // }
         },
-        mounted () {
+        mounted() {
             const vm = this;
             this.$electron.ipcRenderer.on('scanResult', (event, message) => {
                 const scanResult = JSON.parse(message);
-                console.log(typeof(scanResult), scanResult);
+                console.log(typeof (scanResult), scanResult);
                 this.scannedPaths = scanResult.ScannedPaths;
                 console.log(this.scannedPaths);
             });
