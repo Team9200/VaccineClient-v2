@@ -14,9 +14,13 @@ import storage from 'electron-json-storage';
 import fs from 'fs';
 import zipFolder from 'zip-folder';
 import WebSocket from 'ws';
+import express from 'express';
 
 import { start, hello } from './modules/unknownfs/main';
 import { createStorage } from './modules/unknownfs/createStorage';
+import { headerJson } from './modules/unknownfs/headerParse';
+
+import http from 'http';
 
 require('date-utils');
 // //unknownfs.start();
@@ -25,6 +29,13 @@ require('date-utils');
  * Set `__static` path to static files in production
  * https://simulatedgreg.gitbooks.io/electron-vue/content/en/using-static-assets.html
  */
+
+const secretKey = 'b50b695689efca07f704b0aaf3ed512220107a63aad36eca49e24dd02db99b3f'
+const publicKey = '0308093cdf35b60def9e5cc664c675c67eae84720e99b14cd8264c59799a8ae8bc'
+
+const secretKeyS = 'c8f6ec34dd93dfcc72c8dc22ca37a33bdcf24032fa016c42dcc7adcbc3299e9a'
+const publicKeyS = '0353803934aefd9e46b004b7a3bee7cb59c0b7d12fdc035592035bd2ee499793b7'
+
 if (process.env.NODE_ENV !== 'development') {
   global.__static = require('path').join(__dirname, '/static').replace(/\\/g, '\\\\')
 }
@@ -45,6 +56,7 @@ function createWindow() {
     width: 1000,
     resizable: false,
     // frame: false
+    backgroundColor: '#303030'
   })
 
   mainWindow.setMenu(null);
@@ -82,12 +94,23 @@ ipcMain.on('reload', (event, message) => {
 
 // Collector Node
 // scan
+let vaccinePath;
+storage.has('vaccine', function (err, hasKey) {
+  if (err) throw err;
+  if (hasKey) {
+      storage.get('vaccine', function (err, data) {
+          if (err) throw err;
+          vaccinePath = data.path;
+      });
+  }
+});
+
 ipcMain.on('scanStart', (event, message) => {
   console.log('ipcMain:scanStart', message);
   try{ fs.mkdirSync('./tmpUnknown'); }catch(e){ if ( e.code != 'EEXIST' ) throw e; };
   const tmpUnknownDir = path.join(__dirname, '../../tmpUnknown');
   const scanPath = message.path;
-  const vaccinePath = message.vaccinePath;
+  // const vaccinePath = message.vaccinePath;
   const options = {
     mode: 'text',
     scriptPath: path.join(vaccinePath, '\\engine'),
@@ -99,7 +122,7 @@ ipcMain.on('scanStart', (event, message) => {
     const scanResultJSON = JSON.parse(scanResultStr);
 
     //scan log
-    const logPath = path.join(__dirname, '../../vaccine/log.json');
+    const logPath = path.join(vaccinePath, '/log.json');
     const dt = new Date().toFormat('YYYY-MM-DD HH24:MI:SS');
 
     const newLog = '[SCAN]'+ dt + 'start - ' + scanPath;
@@ -129,11 +152,22 @@ ipcMain.on('scanStart', (event, message) => {
   });
 });
 
+const trackerIP = '192.168.2.131'
+ipcMain.on('transferRequestToTracker', (event, message) => {
+  const trakerURL = 'http://' + trackerIP + ':29200/sendToStorage?senderPeerId=' + publicKey;
+  http.get(trakerURL, (response) => {
+    response.on('data', (chunk) => {
+      console.log(chunk.toString());
+    });
+  });
+});
+
 // quarantine
+
 ipcMain.on('getQuarantine', (event, message) => {
   console.log('ipcMain:openQuarantine');
   // TODO: Fix vaccine path
-  const quarantinePath = path.join(__dirname, '../../vaccine/engine/tmp/');
+  const quarantinePath = path.join(vaccinePath, '/engine/tmp/');
   const quarantineFileList = new Array();
 
   fs.readdir(quarantinePath, (err, files) => {
@@ -148,7 +182,7 @@ ipcMain.on('getQuarantine', (event, message) => {
 
 // log
 ipcMain.on('getLog', function (event, message) { //로그창 띄우기
-  const logPath = path.join(__dirname, '../../vaccine/log.json');
+  const logPath = path.join(vaccinePath, '/log.json');
 
   fs.readFile(logPath, (err, data) => {
     if (err) throw err;
@@ -164,22 +198,37 @@ let malwareMeta;
 let receivedData = new Array();
 let resultData;
 
-const ws = new WebSocket('ws://211.193.58.164:9090#123');
+// const ws = new WebSocket('http://192.168.2.2:29200');
 
 ipcMain.on('storageWatch', function(event, message) {
   try{ fs.mkdirSync('./storage'); }catch(e){ if ( e.code != 'EEXIST' ) throw e; };
   try{ fs.mkdirSync('./output'); }catch(e){ if ( e.code != 'EEXIST' ) throw e; };
   // console.log(socket.connected);
-  setInterval(function() {
-    ws.send(JSON.stringify({
-      type: 'alive',
-      peerId: 'peerId'
-    }));
-  }, 3000)
+  // setInterval(function() {
+  //   ws.send(JSON.stringify({
+  //     type: 'alive',
+  //     peerId: 'peerId'
+  //   }));
+  // }, 3000)
   hello();
   start();
   
-})
+});
+
+const expressApp = express();
+const expressPort = 39200;
+
+ipcMain.on('waitCollector', function(event, message) {
+  expressApp.listen(expressPort, () => {
+    console.log('express server start');
+  });
+
+  expressApp.get('/sendRequest', (request, response) => {
+    var roomName = request.query.roomName;
+    console.log('요청이 들어왔습니다');
+    response.send('test send');
+  });
+});
 
 ipcMain.on('receiveFile', function(event, message) {
   console.log(message);
@@ -199,6 +248,11 @@ ipcMain.on('receiveFile', function(event, message) {
     }
   }
 })
+
+ipcMain.on('getFSHeader', function(event, message) {
+  headerJson();
+});
+
 
 // Default
 

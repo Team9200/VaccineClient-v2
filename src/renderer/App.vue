@@ -8,7 +8,6 @@
               LinearVaccine
             </v-list-tile-title>
           </v-list-tile>
-
           <v-list-tile router :to="home">
             <v-list-tile-action>
               <v-icon>home</v-icon>

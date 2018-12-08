@@ -2,6 +2,7 @@ import { openSync, writeSync } from 'fs';
 import { getFileSize, headerBitMapSize, bodyBitMapSize } from './modules/file';
 import { parse } from './modules/normalHeader';
 import { usedSpace } from './modules/bit-vector';
+import path from 'path';
 
 global.storageName = path.join(__dirname, '../../../../test.storage'); //"test.storage";
 
@@ -12,7 +13,7 @@ global.BDB = 1024*1024;		// Body Bytes;
 global.HPB = 1/32;			// header per bitmap Bytes
 
 
-async function headerJson(){
+export async function headerJson(){
 
 	var storage = await openSync(storageName,"r+");
 	var storageSize= await getFileSize(storageName);
@@ -36,4 +37,4 @@ async function headerJson(){
 
 }
 
-headerJson();
+// headerJson();

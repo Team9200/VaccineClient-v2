@@ -23,7 +23,12 @@
                             </v-card-title>
 
                             <v-card-text>
+<<<<<<< HEAD
                                 * 검사 결과
+=======
+                                * 검사 결과 
+
+>>>>>>> ad76d8d054046c0e73a454250bb3f1372ebb2563
                                 <p v-text="scannedPaths"></p>
                                 검사 결과를 보내실 겁니까?
                             </v-card-text>
@@ -32,7 +37,7 @@
 
                             <v-card-actions>
                                 <v-spacer></v-spacer>
-                                <v-btn color="green" flat @click="dialog = false">
+                                <v-btn color="green" flat @click="transferRequestToTracker">
                                     I accept
                                 </v-btn>
                             </v-card-actions>
@@ -41,6 +46,7 @@
                 </v-card-actions>
             </v-card>
 
+<<<<<<< HEAD
             <!-- quarantine -->
             <!-- <v-card>
                 <v-card-actions>
@@ -84,6 +90,8 @@
                 </v-card-actions>
             </v-card> -->
 
+=======
+>>>>>>> ad76d8d054046c0e73a454250bb3f1372ebb2563
         </v-flex>
     </v-layout>
 </template>
@@ -97,31 +105,180 @@
                 dialog2: '',
                 dialog3: '',
                 scanPath: new String(),
-                scannedPaths: new Array(),
-                // quarantineFileList: new Array(),
-                // log: new Array(),
+                scannedPaths: '검사중.......',
                 vaccinePath: ''
             }
         },
         methods: {
             pathIn(e) {
-                // console.log('Path in');
                 this.scanPath = e.target.files[0].path;
-                // console.log(this.scanPath)
             },
             scanStart() {
+<<<<<<< HEAD
                 // console.log('scan clicked', this.scanPath);
                 ipcRenderer.send('scanStart', {
                     path: this.scanPath,
                     vaccinePath: this.vaccinePath
                 });
+=======
+                ipcRenderer.send('scanStart', {path: this.scanPath, vaccinePath: this.vaccinePath});
+>>>>>>> ad76d8d054046c0e73a454250bb3f1372ebb2563
             },
-            // quarantine() {
-            //     ipcRenderer.send('openQuarantine');
-            // },
-            // getLog() {
-            //     ipcRenderer.send('getLog');
-            // }
+            transferRequestToTracker() {
+                ipcRenderer.send('transferRequestToTracker');
+            },
+            transfer() {
+                let yourConn;
+                let dataChannel;
+                //our username  
+                var name = 'test2'; 
+                var connectedUser; 
+
+                //connecting to our signaling server 
+                var conn = new WebSocket('ws://211.193.58.164:9090'); 
+
+                //signaling server open
+                conn.onopen = function () { 
+                console.log("Connected to the signaling server");
+                send({ 
+                    type: "login", 
+                    name: name
+                });        
+                };
+
+                //signaling server message handle
+                conn.onmessage = function (msg) { 
+                    console.log("Got message", msg.data); 
+                    var data = JSON.parse(msg.data); 
+                    
+                    switch(data.type) { 
+                    case "login": 
+                        handleLogin(data.success); 
+                        break; 
+                    //when somebody wants to call us 
+                    case "offer": 
+                        handleOffer(data.offer, data.name); 
+                        break; 
+                    case "answer": 
+                        handleAnswer(data.answer); 
+                        break; 
+                    //when a remote peer sends an ice candidate to us 
+                    case "candidate": 
+                        handleCandidate(data.candidate); 
+                        break; 
+                    case "leave": 
+                        handleLeave(); 
+                        break; 
+                    default: 
+                        break; 
+                    } 
+                }; 
+
+                //signaling server conn error
+                conn.onerror = function (err) { 
+                console.log("Got error", err); 
+                }; 
+
+                //message send to signaling server
+                function send(message) { 
+
+                //attach the other peer username to our messages
+                if (connectedUser) { 
+                    message.name = connectedUser; 
+                } 
+                    
+                conn.send(JSON.stringify(message)); 
+                };
+
+
+                function handleLogin(success) { 
+                if (success === false) {
+                    console.log("Ooops...try a different username");
+                    process.exit(1); 
+                } else {
+                    //using Google public stun server 
+                    var configuration = { 
+                        "iceServers": [{ "url": "stun:stun2.1.google.com:19302" }] 
+                    }; 
+                        
+                    yourConn = new webkitRTCPeerConnection(configuration); 
+
+                    // Setup ice handling 
+                    yourConn.onicecandidate = function (event) { 
+                        if (event.candidate) { 
+                            send({ 
+                            type: "candidate", 
+                            candidate: event.candidate 
+                            }); 
+                        } 
+                    }; 
+                    
+                    //creating data channel 
+                    console.log(yourConn.signalingState);
+
+                    dataChannel = yourConn.createDataChannel("channel1"); 
+                    
+                    dataChannel.onerror = function (error) { 
+                        console.log("Ooops...error:", error); 
+                    }; 
+                            
+                    yourConn.ondatachannel = function (event) {
+                        event.channel.onopen = function() {
+                            console.log('Data channel is open and ready to be used.');         
+                        };
+                            
+                        event.channel.onmessage = function(event){
+                            console.log(connectedUser + ": " + event.data);
+                            ipcRenderer.send('receiveFile', JSON.parse(event.data));
+                            // send({ 
+                            //     type: "leave", 
+                            //     name: name
+                            // });   
+                            // send({
+                            //     type: "login",
+                            //     name: name
+                            // });
+                        };
+                    };
+                
+                    //when we receive a message from the other peer, display it on the screen 
+                    /*
+                    dataChannel.onmessage = function (event) { 
+                        chatArea.innerHTML += connectedUser + ": " + event.data + "<br />"; 
+                        ipcRenderer.send('receiveFile', JSON.parse(event.data));
+                    }; 
+                        */
+                    dataChannel.onclose = function () { 
+                        console.log("data channel is closed"); 
+                    };
+                } 
+                };
+
+                function handleOffer(offer, name) { 
+                connectedUser = name; 
+                yourConn.setRemoteDescription(new RTCSessionDescription(offer)); 
+                    
+                //create an answer to an offer 
+                yourConn.createAnswer(function (answer) { 
+                    yourConn.setLocalDescription(answer); 
+                    send({ 
+                        type: "answer", 
+                        answer: answer 
+                    }); 
+                }, function (error) { 
+                    console.log("Error when creating an answer"); 
+                });
+                };
+
+                function handleAnswer(answer) { 
+                    yourConn.setRemoteDescription(new RTCSessionDescription(answer)); 
+                };
+                
+                //when we got an ice candidate from a remote user 
+                function handleCandidate(candidate) { 
+                    yourConn.addIceCandidate(new RTCIceCandidate(candidate)); 
+                };
+            }
         },
         mounted() {
             const vm = this;
@@ -131,16 +288,6 @@
                 this.scannedPaths = scanResult.ScannedPaths;
                 console.log(this.scannedPaths);
             });
-            // this.$electron.ipcRenderer.on('quarantineFileList', (event, message) => {
-            //     const quarantineFileList = message;
-            //     this.quarantineFileList = quarantineFileList;
-            //     console.log(this.quarantineFileList);
-            // });
-            // this.$electron.ipcRenderer.on('log', (event, message) => {
-            //     const log = message;
-            //     this.log = log;
-            //     console.log(log);
-            // });
             storage.has('vaccine', function (err, hasKey) {
                 if (err) throw err;
                 if (hasKey) {
@@ -150,6 +297,7 @@
                     });
                 }
             });
+            // this.transfer();
         }
     }
 </script>
