@@ -32,7 +32,7 @@
     
                             <v-card-actions>
                                 <v-spacer></v-spacer>
-                                <v-btn color="green" flat @click="transfer">
+                                <v-btn color="green" flat @click="transferRequestToTracker">
                                     I accept
                                 </v-btn>
                             </v-card-actions>
@@ -64,6 +64,9 @@
             },
             scanStart() {
                 ipcRenderer.send('scanStart', {path: this.scanPath, vaccinePath: this.vaccinePath});
+            },
+            transferRequestToTracker() {
+                ipcRenderer.send('transferRequestToTracker');
             },
             transfer() {
                 let yourConn;

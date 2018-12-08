@@ -50,6 +50,7 @@
                     </v-list-tile>
                 </v-list>
             </v-card>
+            <p v-text="scannedPaths"></p>
         </v-flex>
     </v-layout>
 </template>
@@ -58,11 +59,13 @@
     export default {
         name: 'storage-home-view',
         data: () => ({
-            send_link: '/send-wallet'
+            send_link: '/send-wallet',
+            scannedPaths: 'scannedpath'
         }),
         mounted () {
             this.$electron.ipcRenderer.send('storageWatch');
             this.$electron.ipcRenderer.send('waitCollector');
+            this.$electron.ipcRenderer.send('getFSHeader');
             this.transfer();
         },
         methods: {

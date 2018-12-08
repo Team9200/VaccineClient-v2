@@ -18,6 +18,9 @@ import express from 'express';
 
 import { start, hello } from './modules/unknownfs/main';
 import { createStorage } from './modules/unknownfs/createStorage';
+import { headerJson } from './modules/unknownfs/headerParse';
+
+import http from 'http';
 
 require('date-utils');
 // //unknownfs.start();
@@ -29,6 +32,9 @@ require('date-utils');
 
 const secretKey = 'b50b695689efca07f704b0aaf3ed512220107a63aad36eca49e24dd02db99b3f'
 const publicKey = '0308093cdf35b60def9e5cc664c675c67eae84720e99b14cd8264c59799a8ae8bc'
+
+const secretKeyS = 'c8f6ec34dd93dfcc72c8dc22ca37a33bdcf24032fa016c42dcc7adcbc3299e9a'
+const publicKeyS = '0353803934aefd9e46b004b7a3bee7cb59c0b7d12fdc035592035bd2ee499793b7'
 
 if (process.env.NODE_ENV !== 'development') {
   global.__static = require('path').join(__dirname, '/static').replace(/\\/g, '\\\\')
@@ -50,6 +56,7 @@ function createWindow() {
     width: 1000,
     resizable: false,
     // frame: false
+    backgroundColor: '#303030'
   })
 
   mainWindow.setMenu(null);
@@ -145,6 +152,16 @@ ipcMain.on('scanStart', (event, message) => {
   });
 });
 
+const trackerIP = '192.168.2.131'
+ipcMain.on('transferRequestToTracker', (event, message) => {
+  const trakerURL = 'http://' + trackerIP + ':29200/sendToStorage?senderPeerId=' + publicKey;
+  http.get(trakerURL, (response) => {
+    response.on('data', (chunk) => {
+      console.log(chunk.toString());
+    });
+  });
+});
+
 // quarantine
 
 ipcMain.on('getQuarantine', (event, message) => {
@@ -231,6 +248,11 @@ ipcMain.on('receiveFile', function(event, message) {
     }
   }
 })
+
+ipcMain.on('getFSHeader', function(event, message) {
+  headerJson();
+});
+
 
 // Default
 
