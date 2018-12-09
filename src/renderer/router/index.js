@@ -63,6 +63,11 @@ export default new Router({
     {
       path: '*',
       redirect: '/error'
-    }
+    },
+    // {
+    //   path: '/send',
+    //   name: 'send-not-view',
+    //   component: require('@/components/Collector/SendNotView').default
+    // }
   ]
 })

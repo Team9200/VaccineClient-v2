@@ -69,7 +69,7 @@
                 let yourConn;
                 let dataChannel;
                 //our username  
-                var name = '#' + cPId; 
+                var name = '#' + cPid; 
                 var connectedUser; 
 
                 //connecting to our signaling server 

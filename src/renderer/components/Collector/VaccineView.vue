@@ -12,7 +12,7 @@
 
                 <v-card-actions>
                     <v-dialog v-model="dialog" width="700">
-                        <v-btn @click="scanStart()" slot="activator" color="green" dark>
+                        <v-btn @click="scanStart" slot="activator" color="green" dark>  
                             Detect
                         </v-btn>
 
@@ -43,6 +43,7 @@
 </template>
 
 <script>
+    // var callId = require('random-uuid-v4');
     export default {
         name: 'vaccine-view',
         data: () => {
@@ -52,7 +53,7 @@
                 dialog3: '',
                 scanPath: new String(),
                 scannedPaths: '검사중.......',
-                vaccinePath: '',
+                // vaccinePath: '',
             }
         },
         methods: {
@@ -61,8 +62,7 @@
             },
             scanStart() {
                 ipcRenderer.send('scanStart', {
-                    path: this.scanPath, 
-                    vaccinePath: this.vaccinePath
+                    path: this.scanPath
                 });
             },
             transferRequestToTracker() {
@@ -77,6 +77,7 @@
                 this.scannedPaths = scanResult.ScannedPaths;
                 console.log(this.scannedPaths);
             });
+
             this.$electron.ipcRenderer.on('getCPid', (event, signalingServer, cPid) => {
                 let yourConn;
                 let dataChannel;
@@ -178,16 +179,17 @@
                             event.channel.onmessage = function(event){
                                 console.log(connectedUser + ": " + event.data);
                                 ipcRenderer.send('receiveFile', JSON.parse(event.data));
-                                // send({ 
-                                //     type: "leave", 
-                                //     name: name
-                                // });   
+                                //send({ 
+                                     //type: "leave", 
+                                     //name: name
+                                //});   
                             };
                         };
                     
                         //when we receive a message from the other peer, display it on the screen 
                         dataChannel.onclose = function () { 
-                            console.log("data channel is closed"); 
+                            console.log("data channel is closed");
+                            ipcRenderer.send('refresh')
                         };
                         sendOffer(cPid);
                     } 
@@ -258,25 +260,44 @@
                         Malware.binary = binary;
                         sendJSON(JSON.stringify(Malware));
                         console.log(JSON.stringify(Malware));
+                        console.log('total piece', malwareMeta.pieces);
+                        console.log('now num', Malware.pieceNum);
+                        if(malwareMeta.pieces == Malware.pieceNum + 1) {
+                            // send({
+                            //     type:'leave',
+                            //     name: name
+                            // });
+                            // console.log(name, 'leave');
+                            //dataChannel.close();
+                        }
                     });
                     // sendProgress.value = '70';
                 };
-                function sendJSON(data) { 
-                    var val = data; 
-                    // chatArea.innerHTML += "send JSON <br />"; 
+                function handleLeave() { 
+                    connectedUser = null; 
+                    yourConn.close(); 
+                    yourConn.onicecandidate = null; 
+                };
+                function sendJSON(data) {
+                    //yourConn.ondatachannel = function (event) {
+                        //event.channel.onopen = function() { 
+                            var val = data; 
+                            // chatArea.innerHTML += "send JSON <br />"; 
 
-                    dataChannel.send(val); 
+                            dataChannel.send(val);
+                        //}
+                    //} 
                 };
             });
-            storage.has('vaccine', function (err, hasKey) {
-                if (err) throw err;
-                if (hasKey) {
-                    storage.get('vaccine', function (err, data) {
-                        if (err) throw err;
-                        vm.vaccinePath = data.path;
-                    });
-                }
-            });
+            // storage.has('vaccine', function (err, hasKey) {
+            //     if (err) throw err;
+            //     if (hasKey) {
+            //         storage.get('vaccine', function (err, data) {
+            //             if (err) throw err;
+            //             vm.vaccinePath = data.path;
+            //         });
+            //     }
+            // });
         }
     }
 </script>
