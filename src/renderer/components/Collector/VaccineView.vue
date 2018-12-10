@@ -67,6 +67,219 @@
             },
             transferRequestToTracker() {
                 ipcRenderer.send('transferRequestToTracker');
+                ipcRenderer.on('getCPid', (event, signalingServer, cPid) => {
+                    let yourConn;
+                    let dataChannel;
+                    //our username  
+                    var name = cPid; 
+                    var connectedUser; 
+
+                    //connecting to our signaling server 
+                    var conn = new WebSocket(signalingServer); 
+
+                    //signaling server open
+                    conn.onopen = function () { 
+                        console.log("Connected to the signaling server");
+                        send({ 
+                            type: "login", 
+                            name: name
+                        });        
+                    };
+
+                    //signaling server message handle
+                    conn.onmessage = function (msg) { 
+                        console.log("Got message", msg.data); 
+                        var data = JSON.parse(msg.data); 
+                        
+                        switch(data.type) { 
+                        case "login": 
+                            handleLogin(data.success); 
+                            break; 
+                        //when somebody wants to call us 
+                        case "offer": 
+                            handleOffer(data.offer, data.name); 
+                            break; 
+                        case "answer": 
+                            handleAnswer(data.answer); 
+                            break; 
+                        //when a remote peer sends an ice candidate to us 
+                        case "candidate": 
+                            handleCandidate(data.candidate); 
+                            break; 
+                        case "leave": 
+                            handleLeave(); 
+                            break; 
+                        default: 
+                            break; 
+                        } 
+                    }; 
+
+                    //signaling server conn error
+                    conn.onerror = function (err) { 
+                        console.log("Got error", err); 
+                    }; 
+
+                    //message send to signaling server
+                    function send(message) { 
+                        //attach the other peer username to our messages
+                        if (connectedUser) { 
+                            message.name = connectedUser; 
+                        } 
+                        
+                        conn.send(JSON.stringify(message)); 
+                    };
+                        function handleLogin(success) { 
+                            if (success === false) {
+                                console.log("Ooops...try a different username");
+                                // process.exit(1); 
+                            } else {
+                                //using Google public stun server 
+                                var configuration = { 
+                                    "iceServers": [{ "url": "stun:stun2.1.google.com:19302" }] 
+                                }; 
+                            
+                            yourConn = new webkitRTCPeerConnection(configuration); 
+
+                            // Setup ice handling 
+                            yourConn.onicecandidate = function (event) { 
+                                if (event.candidate) { 
+                                    send({ 
+                                    type: "candidate", 
+                                    candidate: event.candidate 
+                                    }); 
+                                } 
+                            }; 
+                            
+                            //creating data channel 
+                            console.log(yourConn.signalingState);
+
+                            dataChannel = yourConn.createDataChannel("channel1"); 
+                            
+                            dataChannel.onerror = function (error) { 
+                                console.log("Ooops...error:", error); 
+                            }; 
+                                    
+                            yourConn.ondatachannel = function (event) {
+                                event.channel.onopen = function() {
+                                    console.log('Data channel is open and ready to be used.');         
+                                    sendFile();
+                                };
+                                    
+                                event.channel.onmessage = function(event){
+                                    console.log(connectedUser + ": " + event.data);
+                                    ipcRenderer.send('receiveFile', JSON.parse(event.data));
+                                    ipcRenderer.on('end', (message) => {dataChannel.close()})
+                                    //send({ 
+                                        //type: "leave", 
+                                        //name: name
+                                    //});   
+                                };
+                            };
+                        
+                            //when we receive a message from the other peer, display it on the screen 
+                            dataChannel.onclose = function () { 
+                                // yourConn = null;
+                                // dataChannel.close();
+                                //our username  
+                                // name = null; 
+                                // connectedUser; 
+                                
+                                console.log("data channel is closed", dataChannel);
+
+                                // ipcRenderer.send('refresh')
+                                return;
+                            };
+                            sendOffer(cPid);
+                        } 
+                    };
+
+                    function sendOffer (cPid) { 
+                    var callToUsername = '#' + cPid;
+
+                    if (callToUsername.length > 0) { 
+                        connectedUser = callToUsername; 
+                        yourConn.createOffer(function (offer) { 
+                            sendSignal({ 
+                                type: "offer", 
+                                offer: offer 
+                            }); 
+                            yourConn.setLocalDescription(offer); 
+                        }, function (error) { 
+                            alert("Error when creating an offer"); 
+                        }); 
+                    }
+                    };
+                    function sendSignal(message) { 
+                        if (connectedUser) { 
+                            message.name = connectedUser; 
+                        } 
+                        conn.send(JSON.stringify(message)); 
+                    };
+
+                    function handleOffer(offer, name) { 
+                    connectedUser = name; 
+                    yourConn.setRemoteDescription(new RTCSessionDescription(offer)); 
+                        
+                    //create an answer to an offer 
+                    yourConn.createAnswer(function (answer) { 
+                        yourConn.setLocalDescription(answer); 
+                        send({ 
+                            type: "answer", 
+                            answer: answer 
+                        }); 
+                    }, function (error) { 
+                        console.log("Error when creating an answer"); 
+                    });
+                    };
+
+                    function handleAnswer(answer) { 
+                        yourConn.setRemoteDescription(new RTCSessionDescription(answer)); 
+                    };
+                    
+                    //when we got an ice candidate from a remote user 
+                    function handleCandidate(candidate) { 
+                        yourConn.addIceCandidate(new RTCIceCandidate(candidate)); 
+                    };
+                    function sendFile() {
+                        var Malware = new Object();
+                        var malwareMeta = new Object();
+                        // sendProgress.value = '40';
+                        ipcRenderer.send('fileRequest');
+                        ipcRenderer.on('fileRequest-meta', (event, type, filename, size, pieces) => {
+                            malwareMeta.type = type;
+                            malwareMeta.filename = filename;
+                            malwareMeta.size = size;
+                            malwareMeta.pieces = pieces;
+                            sendJSON(JSON.stringify(malwareMeta));
+                            console.log(JSON.stringify(malwareMeta));
+                        });
+                        ipcRenderer.on('fileRequest-reply', (event, pieceNum, binary) => {
+                            Malware.pieceNum = pieceNum;
+                            Malware.binary = binary;
+                            sendJSON(JSON.stringify(Malware));
+                            console.log(JSON.stringify(Malware));
+                            console.log('total piece', malwareMeta.pieces);
+                            console.log('now num', Malware.pieceNum);
+                        });
+                        // sendProgress.value = '70';
+                    };
+                    function handleLeave() { 
+                        connectedUser = null; 
+                        // yourConn.close(); 
+                        yourConn.onicecandidate = null; 
+                        return;
+                    };
+                    function sendJSON(data) {
+                        //yourConn.ondatachannel = function (event) {
+                            //event.channel.onopen = function() { 
+                                var val = data; 
+                                // chatArea.innerHTML += "send JSON <br />"; 
+
+                                dataChannel.send(val);
+                            //}
+                        //} 
+                    };
+                });
             }
         },
         mounted () {
@@ -78,217 +291,217 @@
                 console.log(this.scannedPaths);
             });
 
-            this.$electron.ipcRenderer.on('getCPid', (event, signalingServer, cPid) => {
-                let yourConn;
-                let dataChannel;
-                //our username  
-                var name = cPid; 
-                var connectedUser; 
+            // this.$electron.ipcRenderer.on('getCPid', (event, signalingServer, cPid) => {
+            //     let yourConn;
+            //     let dataChannel;
+            //     //our username  
+            //     var name = cPid; 
+            //     var connectedUser; 
 
-                //connecting to our signaling server 
-                var conn = new WebSocket(signalingServer); 
+            //     //connecting to our signaling server 
+            //     var conn = new WebSocket(signalingServer); 
 
-                //signaling server open
-                conn.onopen = function () { 
-                    console.log("Connected to the signaling server");
-                    send({ 
-                        type: "login", 
-                        name: name
-                    });        
-                };
+            //     //signaling server open
+            //     conn.onopen = function () { 
+            //         console.log("Connected to the signaling server");
+            //         send({ 
+            //             type: "login", 
+            //             name: name
+            //         });        
+            //     };
 
-                //signaling server message handle
-                conn.onmessage = function (msg) { 
-                    console.log("Got message", msg.data); 
-                    var data = JSON.parse(msg.data); 
+            //     //signaling server message handle
+            //     conn.onmessage = function (msg) { 
+            //         console.log("Got message", msg.data); 
+            //         var data = JSON.parse(msg.data); 
                     
-                    switch(data.type) { 
-                    case "login": 
-                        handleLogin(data.success); 
-                        break; 
-                    //when somebody wants to call us 
-                    case "offer": 
-                        handleOffer(data.offer, data.name); 
-                        break; 
-                    case "answer": 
-                        handleAnswer(data.answer); 
-                        break; 
-                    //when a remote peer sends an ice candidate to us 
-                    case "candidate": 
-                        handleCandidate(data.candidate); 
-                        break; 
-                    case "leave": 
-                        handleLeave(); 
-                        break; 
-                    default: 
-                        break; 
-                    } 
-                }; 
+            //         switch(data.type) { 
+            //         case "login": 
+            //             handleLogin(data.success); 
+            //             break; 
+            //         //when somebody wants to call us 
+            //         case "offer": 
+            //             handleOffer(data.offer, data.name); 
+            //             break; 
+            //         case "answer": 
+            //             handleAnswer(data.answer); 
+            //             break; 
+            //         //when a remote peer sends an ice candidate to us 
+            //         case "candidate": 
+            //             handleCandidate(data.candidate); 
+            //             break; 
+            //         case "leave": 
+            //             handleLeave(); 
+            //             break; 
+            //         default: 
+            //             break; 
+            //         } 
+            //     }; 
 
-                //signaling server conn error
-                conn.onerror = function (err) { 
-                    console.log("Got error", err); 
-                }; 
+            //     //signaling server conn error
+            //     conn.onerror = function (err) { 
+            //         console.log("Got error", err); 
+            //     }; 
 
-                //message send to signaling server
-                function send(message) { 
-                    //attach the other peer username to our messages
-                    if (connectedUser) { 
-                        message.name = connectedUser; 
-                    } 
+            //     //message send to signaling server
+            //     function send(message) { 
+            //         //attach the other peer username to our messages
+            //         if (connectedUser) { 
+            //             message.name = connectedUser; 
+            //         } 
                     
-                    conn.send(JSON.stringify(message)); 
-                };
-                    function handleLogin(success) { 
-                        if (success === false) {
-                            console.log("Ooops...try a different username");
-                            process.exit(1); 
-                        } else {
-                            //using Google public stun server 
-                            var configuration = { 
-                                "iceServers": [{ "url": "stun:stun2.1.google.com:19302" }] 
-                            }; 
+            //         conn.send(JSON.stringify(message)); 
+            //     };
+            //         function handleLogin(success) { 
+            //             if (success === false) {
+            //                 console.log("Ooops...try a different username");
+            //                 process.exit(1); 
+            //             } else {
+            //                 //using Google public stun server 
+            //                 var configuration = { 
+            //                     "iceServers": [{ "url": "stun:stun2.1.google.com:19302" }] 
+            //                 }; 
                         
-                        yourConn = new webkitRTCPeerConnection(configuration); 
+            //             yourConn = new webkitRTCPeerConnection(configuration); 
 
-                        // Setup ice handling 
-                        yourConn.onicecandidate = function (event) { 
-                            if (event.candidate) { 
-                                send({ 
-                                type: "candidate", 
-                                candidate: event.candidate 
-                                }); 
-                            } 
-                        }; 
+            //             // Setup ice handling 
+            //             yourConn.onicecandidate = function (event) { 
+            //                 if (event.candidate) { 
+            //                     send({ 
+            //                     type: "candidate", 
+            //                     candidate: event.candidate 
+            //                     }); 
+            //                 } 
+            //             }; 
                         
-                        //creating data channel 
-                        console.log(yourConn.signalingState);
+            //             //creating data channel 
+            //             console.log(yourConn.signalingState);
 
-                        dataChannel = yourConn.createDataChannel("channel1"); 
+            //             dataChannel = yourConn.createDataChannel("channel1"); 
                         
-                        dataChannel.onerror = function (error) { 
-                            console.log("Ooops...error:", error); 
-                        }; 
+            //             dataChannel.onerror = function (error) { 
+            //                 console.log("Ooops...error:", error); 
+            //             }; 
                                 
-                        yourConn.ondatachannel = function (event) {
-                            event.channel.onopen = function() {
-                                console.log('Data channel is open and ready to be used.');         
-                                sendFile();
-                            };
+            //             yourConn.ondatachannel = function (event) {
+            //                 event.channel.onopen = function() {
+            //                     console.log('Data channel is open and ready to be used.');         
+            //                     sendFile();
+            //                 };
                                 
-                            event.channel.onmessage = function(event){
-                                console.log(connectedUser + ": " + event.data);
-                                ipcRenderer.send('receiveFile', JSON.parse(event.data));
-                                //send({ 
-                                     //type: "leave", 
-                                     //name: name
-                                //});   
-                            };
-                        };
+            //                 event.channel.onmessage = function(event){
+            //                     console.log(connectedUser + ": " + event.data);
+            //                     ipcRenderer.send('receiveFile', JSON.parse(event.data));
+            //                     //send({ 
+            //                          //type: "leave", 
+            //                          //name: name
+            //                     //});   
+            //                 };
+            //             };
                     
-                        //when we receive a message from the other peer, display it on the screen 
-                        dataChannel.onclose = function () { 
-                            console.log("data channel is closed");
-                            ipcRenderer.send('refresh')
-                        };
-                        sendOffer(cPid);
-                    } 
-                };
+            //             //when we receive a message from the other peer, display it on the screen 
+            //             dataChannel.onclose = function () { 
+            //                 console.log("data channel is closed");
+            //                 ipcRenderer.send('refresh')
+            //             };
+            //             sendOffer(cPid);
+            //         } 
+            //     };
 
-                function sendOffer (cPid) { 
-                var callToUsername = '#' + cPid;
+            //     function sendOffer (cPid) { 
+            //     var callToUsername = '#' + cPid;
 
-                if (callToUsername.length > 0) { 
-                    connectedUser = callToUsername; 
-                    yourConn.createOffer(function (offer) { 
-                        sendSignal({ 
-                            type: "offer", 
-                            offer: offer 
-                        }); 
-                        yourConn.setLocalDescription(offer); 
-                    }, function (error) { 
-                        alert("Error when creating an offer"); 
-                    }); 
-                }
-                };
-                function sendSignal(message) { 
-                    if (connectedUser) { 
-                        message.name = connectedUser; 
-                    } 
-                    conn.send(JSON.stringify(message)); 
-                };
+            //     if (callToUsername.length > 0) { 
+            //         connectedUser = callToUsername; 
+            //         yourConn.createOffer(function (offer) { 
+            //             sendSignal({ 
+            //                 type: "offer", 
+            //                 offer: offer 
+            //             }); 
+            //             yourConn.setLocalDescription(offer); 
+            //         }, function (error) { 
+            //             alert("Error when creating an offer"); 
+            //         }); 
+            //     }
+            //     };
+            //     function sendSignal(message) { 
+            //         if (connectedUser) { 
+            //             message.name = connectedUser; 
+            //         } 
+            //         conn.send(JSON.stringify(message)); 
+            //     };
 
-                function handleOffer(offer, name) { 
-                connectedUser = name; 
-                yourConn.setRemoteDescription(new RTCSessionDescription(offer)); 
+            //     function handleOffer(offer, name) { 
+            //     connectedUser = name; 
+            //     yourConn.setRemoteDescription(new RTCSessionDescription(offer)); 
                     
-                //create an answer to an offer 
-                yourConn.createAnswer(function (answer) { 
-                    yourConn.setLocalDescription(answer); 
-                    send({ 
-                        type: "answer", 
-                        answer: answer 
-                    }); 
-                }, function (error) { 
-                    console.log("Error when creating an answer"); 
-                });
-                };
+            //     //create an answer to an offer 
+            //     yourConn.createAnswer(function (answer) { 
+            //         yourConn.setLocalDescription(answer); 
+            //         send({ 
+            //             type: "answer", 
+            //             answer: answer 
+            //         }); 
+            //     }, function (error) { 
+            //         console.log("Error when creating an answer"); 
+            //     });
+            //     };
 
-                function handleAnswer(answer) { 
-                    yourConn.setRemoteDescription(new RTCSessionDescription(answer)); 
-                };
+            //     function handleAnswer(answer) { 
+            //         yourConn.setRemoteDescription(new RTCSessionDescription(answer)); 
+            //     };
                 
-                //when we got an ice candidate from a remote user 
-                function handleCandidate(candidate) { 
-                    yourConn.addIceCandidate(new RTCIceCandidate(candidate)); 
-                };
-                function sendFile() {
-                    var Malware = new Object();
-                    var malwareMeta = new Object();
-                    // sendProgress.value = '40';
-                    ipcRenderer.send('fileRequest');
-                    ipcRenderer.on('fileRequest-meta', (event, type, filename, size, pieces) => {
-                        malwareMeta.type = type;
-                        malwareMeta.filename = filename;
-                        malwareMeta.size = size;
-                        malwareMeta.pieces = pieces;
-                        sendJSON(JSON.stringify(malwareMeta));
-                        console.log(JSON.stringify(malwareMeta));
-                    });
-                    ipcRenderer.on('fileRequest-reply', (event, pieceNum, binary) => {
-                        Malware.pieceNum = pieceNum;
-                        Malware.binary = binary;
-                        sendJSON(JSON.stringify(Malware));
-                        console.log(JSON.stringify(Malware));
-                        console.log('total piece', malwareMeta.pieces);
-                        console.log('now num', Malware.pieceNum);
-                        if(malwareMeta.pieces == Malware.pieceNum + 1) {
-                            // send({
-                            //     type:'leave',
-                            //     name: name
-                            // });
-                            // console.log(name, 'leave');
-                            //dataChannel.close();
-                        }
-                    });
-                    // sendProgress.value = '70';
-                };
-                function handleLeave() { 
-                    connectedUser = null; 
-                    yourConn.close(); 
-                    yourConn.onicecandidate = null; 
-                };
-                function sendJSON(data) {
-                    //yourConn.ondatachannel = function (event) {
-                        //event.channel.onopen = function() { 
-                            var val = data; 
-                            // chatArea.innerHTML += "send JSON <br />"; 
+            //     //when we got an ice candidate from a remote user 
+            //     function handleCandidate(candidate) { 
+            //         yourConn.addIceCandidate(new RTCIceCandidate(candidate)); 
+            //     };
+            //     function sendFile() {
+            //         var Malware = new Object();
+            //         var malwareMeta = new Object();
+            //         // sendProgress.value = '40';
+            //         ipcRenderer.send('fileRequest');
+            //         ipcRenderer.on('fileRequest-meta', (event, type, filename, size, pieces) => {
+            //             malwareMeta.type = type;
+            //             malwareMeta.filename = filename;
+            //             malwareMeta.size = size;
+            //             malwareMeta.pieces = pieces;
+            //             sendJSON(JSON.stringify(malwareMeta));
+            //             console.log(JSON.stringify(malwareMeta));
+            //         });
+            //         ipcRenderer.on('fileRequest-reply', (event, pieceNum, binary) => {
+            //             Malware.pieceNum = pieceNum;
+            //             Malware.binary = binary;
+            //             sendJSON(JSON.stringify(Malware));
+            //             console.log(JSON.stringify(Malware));
+            //             console.log('total piece', malwareMeta.pieces);
+            //             console.log('now num', Malware.pieceNum);
+            //             if(malwareMeta.pieces == Malware.pieceNum + 1) {
+            //                 // send({
+            //                 //     type:'leave',
+            //                 //     name: name
+            //                 // });
+            //                 // console.log(name, 'leave');
+            //                 //dataChannel.close();
+            //             }
+            //         });
+            //         // sendProgress.value = '70';
+            //     };
+            //     function handleLeave() { 
+            //         connectedUser = null; 
+            //         yourConn.close(); 
+            //         yourConn.onicecandidate = null; 
+            //     };
+            //     function sendJSON(data) {
+            //         //yourConn.ondatachannel = function (event) {
+            //             //event.channel.onopen = function() { 
+            //                 var val = data; 
+            //                 // chatArea.innerHTML += "send JSON <br />"; 
 
-                            dataChannel.send(val);
-                        //}
-                    //} 
-                };
-            });
+            //                 dataChannel.send(val);
+            //             //}
+            //         //} 
+            //     };
+            // });
             // storage.has('vaccine', function (err, hasKey) {
             //     if (err) throw err;
             //     if (hasKey) {

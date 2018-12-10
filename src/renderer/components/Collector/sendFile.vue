@@ -1,10 +1,20 @@
 <template>
-    <p>in send not view</p>
+<v-layout>
+        <v-flex xs12>
+            <v-card>
+                <p>gogogogogogogogogogogogogo</p>
+            </v-card>
+        </v-flex>
+    </v-layout>
 </template>
 
 <script>
     export default {
-        name: 'send-not-view',
+        name: 'sendFile-view',
+        mounted() {
+            console.log('sendFile view on');
+            setTimeout(() => {console.log('wait please')}, 100000);
+        }
         // data: () => {
         //     return {
         //         scanPath: new String(),

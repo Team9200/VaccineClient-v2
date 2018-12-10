@@ -1,7 +1,6 @@
 import {
   app,
   BrowserWindow,
-  // ipcMain: ipc
   ipcMain
 } from 'electron';
 
@@ -40,7 +39,6 @@ if (process.env.NODE_ENV !== 'development') {
 }
 
 let mainWindow
-let sendfileWindow
 const winURL = process.env.NODE_ENV  === 'development' ?
   `http://localhost:9080` :
   `file://${__dirname}/index.html`
@@ -66,28 +64,6 @@ function createWindow() {
   mainWindow.on('closed', () => {
     mainWindow = null
   })
-}
-
-function createSendfileWindow(url, pid) {
-  sendfileWindow = new BrowserWindow({
-    height: 300,
-    useContentSize: true,
-    width: 500,
-    resizable: false,
-    show: true
-  })
-  
-  sendfileWindow.setMenu(null);
-  console.log('send File path', path.join(__dirname, '../renderer/sendfile.html'));
-  sendfileWindow.loadURL(path.join(__dirname, '../renderer/sendfile.html'));
-
-  // sendfileWindow.webContents.on('did-finish-load', () => {
-  //   sendfileWindow.webContents.send('getCPid', url, pid);
-  // });
-
-  sendfileWindow.on('closed', () => {
-    sendfileWindow = null
-  }) 
 }
 
 app.on('ready', createWindow)
@@ -129,8 +105,6 @@ storage.has('vaccine', function (err, hasKey) {
 
 // Collector Node
 // scan
-
-
 ipcMain.on('scanStart', (event, message) => {
   console.log('ipcMain:scanStart', message);
   try{ fs.mkdirSync('./tmpUnknown'); }catch(e){ if ( e.code != 'EEXIST' ) throw e; };
@@ -177,36 +151,21 @@ ipcMain.on('scanStart', (event, message) => {
   });
 });
 
-const trackerIP = '192.168.24.185';
+const trackerIP = '192.168.2.2';
 
 ipcMain.on('transferRequestToTracker', (event, message) => {
-  console.log('call tracker');
   const trakerURL = 'http://' + trackerIP + ':29200/sendToStorage?senderPeerId=' + publicKey;
+  http.get(trakerURL, (response) => {
+    response.on('data', (storageInfo) => {
+      console.log(JSON.parse(storageInfo).SignalingServerURL);
+      setTimeout(() => {event.sender.send('getCPid', 'ws://' + JSON.parse(storageInfo).SignalingServerURL, publicKey);}, 3000)
+    });
+  });
+ });
 
-  // http.get(trakerURL, (response) => {
-  //   response.on('data', (storageInfo) => {
-  //     console.log(JSON.parse(storageInfo).SignalingServerURL);
-  //     setTimeout(() => {
-  //       createSendfileWindow('ws://' + JSON.parse(storageInfo).SignalingServerURL, publicKey);
-  //       // event.sender.send('getCPid', 'ws://' + JSON.parse(storageInfo).SignalingServerURL, publicKey);
-  //     }, 5000)
-  //   });
-  // });
-
-  setTimeout(() => {
-    createSendfileWindow(trackerIP, publicKey);
-    // event.sender.send('getCPid', 'ws://' + JSON.parse(storageInfo).SignalingServerURL, publicKey);
-  }, 1000)
-  
-});
-
-ipcMain.on('refresh', (event, message) => {
-  mainWindow.reload();
-})
 
 const chunkSize = 16384;
 var sliced_data = '';
-var pieceNum = 0;
 ipcMain.on('fileRequest', function(event, msg) {
     console.log('fileREQ In');
     fs.readFile(path.join(__dirname, '../../tmpMalware.zip'), function(err, data) {
@@ -214,17 +173,15 @@ ipcMain.on('fileRequest', function(event, msg) {
         console.log(data);
         var encoded_data = base64Encode(data);
         event.sender.send('fileRequest-meta', 'meta', 'Malware.zip', Buffer.from(data).length, Math.ceil((Buffer.from(data).length/chunkSize)));
-        for(var i=0, j=0; i<encoded_data.length; i+=chunkSize, j++) {
+        for(let i=0, j=0; i<encoded_data.length; i+=chunkSize, j++) {
             sliced_data = sliceEncodedData(encoded_data, i);
-            event.sender.send('fileRequest-reply', pieceNum, sliced_data);
-            pieceNum = pieceNum + 1;
+            event.sender.send('fileRequest-reply', j + 1, sliced_data);
+            if(j+1 == Math.ceil((Buffer.from(data).length/chunkSize))) event.sender.send('end');
         }
-        pieceNum = 0;
     });
 });
 
 // quarantine
-
 ipcMain.on('getQuarantine', (event, message) => {
   console.log('ipcMain:openQuarantine');
   // TODO: Fix vaccine path
@@ -285,8 +242,13 @@ ipcMain.on('storageWatch', function(event, message) {
     const roomName = request.query.roomName;
     console.log(roomName);
     event.sender.send('collectorPid', roomName);
-    response.send('test send');
   });
+
+  expressApp.get('/unknownRequest', (request, response) => {
+    const roomName = request.query.roomName;
+    console.log(roomName);
+    event.sender.send('analyzerPid', roomName);
+  })
 
   start();
   
@@ -307,10 +269,26 @@ ipcMain.on('receiveFile', function(event, message) {
       resultData = new Buffer.from(receivedData);
       fs.writeFileSync('./malware.zip', resultData);
       // event.sender.send('receivedFile-reply', 'test');
+      receivedData = new Array();
       console.log('Receive Unknown File Well');	
     }
   }
 })
+
+ipcMain.on('unknownRequest', function(event, msg) {
+  console.log('unknownREQ In');
+  fs.readFile(path.join(__dirnam,'../../Malware.zip'), function(err, data) {
+      console.log(path.join(__dirname, '../../Malware.zip'));
+      console.log(data);
+      var encoded_data = base64Encode(data);
+      event.sender.send('unknownRequest-meta', 'meta', 'Malware.zip', Buffer.from(data).length, Math.round((Buffer.from(data).length/chunkSize)));
+      for(var i=0, j=0; i<encoded_data.length; i+=chunkSize, j++) {
+          sliced_data = sliceEncodedData(encoded_data, i);
+          event.sender.send('unknownRequest-reply', j, sliced_data);
+          if(j+1 == Math.ceil((Buffer.from(data).length/chunkSize))) event.sender.send('end');
+      }
+  });
+});
 
 
 ipcMain.on('getFSHeader', function(event, message) {

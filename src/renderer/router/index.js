@@ -4,6 +4,7 @@ import Router from 'vue-router'
 Vue.use(Router)
 
 export default new Router({
+  mode: 'history',
   routes: [
     {
       path: '/', 
@@ -24,6 +25,11 @@ export default new Router({
       path: '/log',
       name: 'log-view',
       component: require('@/components/Collector/LogView').default
+    },
+    {
+      path: '/sendFile',
+      name: 'sendFile-view',
+      component: require('@/components/Collector/sendFile').default
     },
     {
       path: '/filelist',
@@ -63,11 +69,6 @@ export default new Router({
     {
       path: '*',
       redirect: '/error'
-    },
-    // {
-    //   path: '/send',
-    //   name: 'send-not-view',
-    //   component: require('@/components/Collector/SendNotView').default
-    // }
+    }
   ]
 })
