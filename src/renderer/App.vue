@@ -230,7 +230,10 @@
       },
       first (value) {
         if (!value) return
-        if (value === true) this.$router.push('/first')
+        if (value === true) {
+          this.$router.push('/first')
+          value = false
+        }
       }
     }
   }
