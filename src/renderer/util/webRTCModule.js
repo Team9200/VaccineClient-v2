@@ -253,11 +253,7 @@ const fileSend = (aPid) => {
                     
                 event.channel.onmessage = function(event){
                     console.log(connectedUser + ": " + event.data);
-                    ipcRenderer.send('receiveFile', JSON.parse(event.data));
-                    //send({ 
-                        //type: "leave", 
-                        //name: name
-                    //});   
+                    ipcRenderer.send('unknownFileSample', JSON.parse(event.data));
                 };
             };
         
@@ -331,8 +327,8 @@ const fileSend = (aPid) => {
         var Malware = new Object();
         var malwareMeta = new Object();
         // sendProgress.value = '40';
-        ipcRenderer.send('fileRequest');
-        ipcRenderer.on('fileRequest-meta', (event, type, filename, size, pieces) => {
+        ipcRenderer.send('unknownSlice');
+        ipcRenderer.on('unknownStoA-meta', (event, type, filename, size, pieces) => {
             malwareMeta.type = type;
             malwareMeta.filename = filename;
             malwareMeta.size = size;
@@ -340,7 +336,7 @@ const fileSend = (aPid) => {
             sendJSON(JSON.stringify(malwareMeta));
             console.log(JSON.stringify(malwareMeta));
         });
-        ipcRenderer.on('fileRequest-reply', (event, pieceNum, binary) => {
+        ipcRenderer.on('unknownStoA-reply', (event, pieceNum, binary) => {
             Malware.pieceNum = pieceNum;
             Malware.binary = binary;
             sendJSON(JSON.stringify(Malware));

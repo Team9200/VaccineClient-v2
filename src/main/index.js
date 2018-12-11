@@ -258,25 +258,29 @@ ipcMain.on('storageInit', function(event, message) {
   
   //Storage to Analyer Unknown send
   expressApp.get('/unknownStoA', (request, response) => {
-    const analyzerPid = request.query.analyzerPid;
+    console.log('getunknownStoA');
+    const analyzerPid = request.query.peerId;
+    
+    event.sender.send('analyzerPid', analyzerPid);
 
     //extrect random unknown sample
-    fs.writeFileSync('./storage/give');
-    fs.readFile('./output/unknown', (err, data) => {
-      console.log(data);
-      let encoded_data = base64Encode(data);
-      event.sender.send('unknownStoA-meta', 'meta', 'Sample.zip', Buffer.from(data).length, Math.round((Buffer.from(data).length/chunkSize)));
-      for(let i=0, j=0; i<encoded_data.length; i+=chunkSize, j++) {
-          sliced_data = sliceEncodedData(encoded_data, i);
-          event.sender.send('unknownStoA-reply', j, sliced_data);
-          // if(j+1 == Math.ceil((Buffer.from(data).length/chunkSize))) event.sender.send('end');
-      }
-      
-    });
-  });
+    fs.writeFile('./storage/give', '', (err) => {
 
+      });
+    });
   start();
-  
+});
+
+ipcMain.on('unknownSlice', (event, message) => {
+  fs.readFile('./output/unknown', (err, data) => {
+          let encoded_data = base64Encode(data);
+          event.sender.send('unknownStoA-meta', 'meta', 'Sample.zip', Buffer.from(data).length, Math.round((Buffer.from(data).length/chunkSize)));
+          for(let i=0, j=0; i<encoded_data.length; i+=chunkSize, j++) {
+              sliced_data = sliceEncodedData(encoded_data, i);
+              event.sender.send('unknownStoA-reply', j, sliced_data);
+              // if(j+1 == Math.ceil((Buffer.from(data).length/chunkSize))) event.sender.send('end');
+          }
+    });
 });
 
 //Receved Unknown Sample handle from Collector
@@ -294,21 +298,6 @@ ipcMain.on('receiveFile', function(event, message) {
   }
 })
 
-
-ipcMain.on('unknownRequest', function(event, msg) {
-  console.log('unknownREQ In');
-  fs.readFile(path.join(__dirnam,'../../Malware.zip'), function(err, data) {
-      console.log(path.join(__dirname, '../../Malware.zip'));
-      console.log(data);
-      var encoded_data = base64Encode(data);
-      event.sender.send('unknownRequest-meta', 'meta', 'Malware.zip', Buffer.from(data).length, Math.round((Buffer.from(data).length/chunkSize)));
-      for(var i=0, j=0; i<encoded_data.length; i+=chunkSize, j++) {
-          sliced_data = sliceEncodedData(encoded_data, i);
-          event.sender.send('unknownRequest-reply', j, sliced_data);
-          if(j+1 == Math.ceil((Buffer.from(data).length/chunkSize))) event.sender.send('end');
-      }
-  });
-});
 
 
 ipcMain.on('getFSHeader', function(event, message) {
@@ -349,22 +338,21 @@ ipcMain.on('setVaccinePath', (event, message) => {
 
 
 
-/**
- * Auto Updater
- *
- * Uncomment the following code below and install `electron-updater` to
- * support auto updating. Code Signing with a valid certificate is required.
- * https://simulatedgreg.gitbooks.io/electron-vue/content/en/using-electron-builder.html#auto-updating
- */
+//
+//  * Auto Updater
+//  *
+//  * Uncomment the following code below and install `electron-updater` to
+//  * support auto updating. Code Signing with a valid certificate is required.
+//  * https://simulatedgreg.gitbooks.io/electron-vue/content/en/using-electron-builder.html#auto-updating
+//
 
-/*
-import { autoUpdater } from 'electron-updater'
+//
+// import { autoUpdater } from 'electron-updater'
 
-autoUpdater.on('update-downloaded', () => {
-  autoUpdater.quitAndInstall()
-})
+// autoUpdater.on('update-downloaded', () => {
+//   autoUpdater.quitAndInstall()
+// })
 
-app.on('ready', () => {
-  if (process.env.NODE_ENV === 'production') autoUpdater.checkForUpdates()
-})
- */
+// app.on('ready', () => {
+//   if (process.env.NODE_ENV === 'production') autoUpdater.checkForUpdates()
+// })

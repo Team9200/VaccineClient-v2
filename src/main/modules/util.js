@@ -1,3 +1,6 @@
+import fs from 'fs';
+const chunkSize = 16384;
+
 const deleteFolderRecursive = function(dirPath) {
     if( fs.existsSync(dirPath) ) {
       fs.readdirSync(dirPath).forEach(function(file,index){

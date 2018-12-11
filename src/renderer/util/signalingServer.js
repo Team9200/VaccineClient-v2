@@ -97,8 +97,8 @@ const signalingServer = () => {
                         });
                     }
                     console.log(users);
-                    delete users['#'+leaveUser];
-                    delete users[leaveUser];
+                    delete users['#'+leaveUser.replace('#','')];
+                    delete users[leaveUser.replace('#','')];
 
                     console.log('SIG: leave after users', users);
                     break;
