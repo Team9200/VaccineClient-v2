@@ -271,18 +271,6 @@ ipcMain.on('storageInit', function(event, message) {
   start();
 });
 
-ipcMain.on('unknownSlice', (event, message) => {
-  fs.readFile('./output/unknown', (err, data) => {
-          let encoded_data = base64Encode(data);
-          event.sender.send('unknownStoA-meta', 'meta', 'Sample.zip', Buffer.from(data).length, Math.round((Buffer.from(data).length/chunkSize)));
-          for(let i=0, j=0; i<encoded_data.length; i+=chunkSize, j++) {
-              sliced_data = sliceEncodedData(encoded_data, i);
-              event.sender.send('unknownStoA-reply', j, sliced_data);
-              // if(j+1 == Math.ceil((Buffer.from(data).length/chunkSize))) event.sender.send('end');
-          }
-    });
-});
-
 //Receved Unknown Sample handle from Collector
 ipcMain.on('receiveFile', function(event, message) {
   if (message.type == 'meta') {
@@ -291,6 +279,7 @@ ipcMain.on('receiveFile', function(event, message) {
   else {
     receivedData = receivedData.concat(message.binary.data);
     if(receivedData.length == malwareMeta.size) {
+      resultData = new Buffer.from(receivedData);
       fs.writeFileSync('./malware.zip', resultData);
       receivedData = new Array();
       console.log('Receive Unknown File Well');	
@@ -299,11 +288,59 @@ ipcMain.on('receiveFile', function(event, message) {
 })
 
 
+ipcMain.on('unknownRequest', function(event, msg) {
+  console.log('unknownREQ In');
+  fs.readFile(path.join(__dirnam,'../../Malware.zip'), function(err, data) {
+      console.log(path.join(__dirname, '../../Malware.zip'));
+      console.log(data);
+      var encoded_data = base64Encode(data);
+      event.sender.send('unknownRequest-meta', 'meta', 'Malware.zip', Buffer.from(data).length, Math.round((Buffer.from(data).length/chunkSize)));
+      for(var i=0, j=0; i<encoded_data.length; i+=chunkSize, j++) {
+          sliced_data = sliceEncodedData(encoded_data, i);
+          event.sender.send('unknownRequest-reply', j, sliced_data);
+          if(j+1 == Math.ceil((Buffer.from(data).length/chunkSize))) event.sender.send('end');
+      }
+  });
+});
+
 
 ipcMain.on('getFSHeader', function(event, message) {
   headerJson();
 });
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// analyzer
+
+ipcMain.on('requestUnknownFile-tracker', (event, message) => {
+  // console.log(unknownSamplename);
+  const trackerURL = 'http://' + trackerIP + ':29200/reqUnknownFileToStorage?peerId=' + publicKey;
+  console.log(trackerURL);
+  http.get(trackerURL, (response) => {
+    response.on('data', (storageInfo) => {
+      console.log('storageInfo', JSON.parse(storageInfo));
+      event.sender.send('requestUnknownFile-storage', 'ws://' + JSON.parse(storageInfo).SignalingServerURL, publicKey);
+    })
+  });
+});
+
+
+
+
+
+ipcMain.on('receiveUnknownSample', function(event, message) {
+  if (message.type == 'meta') {
+    malwareMeta = message;
+  }
+  else {
+    receivedData = receivedData.concat(message.binary.data);
+    if(receivedData.length == malwareMeta.size) {
+      resultData = new Buffer.from(receivedData);
+      fs.writeFileSync('./sample.zip', resultData);
+      receivedData = new Array();
+      console.log('Receive Unknown sample Well');	
+    }
+  }
+})
 
 // Default
 
@@ -327,15 +364,6 @@ ipcMain.on('setMode', (event, message) => {
 ipcMain.on('setVaccinePath', (event, message) => {
   storage.set('vaccine', {path: message});
 });
-
-
-
-
-
-
-
-
-
 
 
 //
