@@ -38,8 +38,8 @@
                             <v-container>
                                 <v-flex v-if="mode == 'collector'" xs12>
                                     <v-text-field prepend-icon="attach_file" single-line v-model="vaccinePath" label="vaccine path"
-                                        :required="required" @click.native="onFocus" :disabled="disabled" ref="fileTextField"></v-text-field>
-                                    <input type="file" :accept="accept" :multiple="false" :disabled="disabled" ref="fileInput"
+                                        @click.native="onFocus" ref="fileTextField"></v-text-field>
+                                    <input type="file" :multiple="false" ref="fileInput"
                                         @change="onFileChange" webkitdirectory directory>
                                 </v-flex>
                                 <v-flex v-if="mode == 'storage'" xs12>
@@ -74,7 +74,6 @@
                                     <ul>
                                         <li>node: {{ mode }}</li>
                                         <li v-if="node === 'collector'">vaccine path: {{ vaccinePath }}</li>
-                                        <li v-if="node === 'collector'">vaccine path: {{ vaccinePath }}</li>
                                         <li v-if="node === 'storage'">storage size: {{ storageSize }}</li>
                                         <li>public key: {{ pk }}</li>
                                         <li>secret key: {{ sk }}</li>
@@ -104,6 +103,7 @@
                 step: 0,
                 node: '',
                 mode: '',
+                disabled: false,
                 vaccinePath: '',
                 storageSize: 0,
                 pk: '',

@@ -30,7 +30,8 @@
               <v-list-tile-title>Collector</v-list-tile-title>
             </v-list-tile> -->
 
-          <v-list-tile ripple v-if="mode === 'collector'" router :to="collector.to" v-for="(collector, i) in collectors" :key="i">
+          <v-list-tile ripple v-if="mode === 'collector'" router :to="collector.to" v-for="(collector, i) in collectors"
+            :key="i">
             <v-list-tile-action>
               <v-icon v-text="collector.icon"></v-icon>
             </v-list-tile-action>
@@ -43,7 +44,8 @@
               <v-list-tile-title>Analyzer</v-list-tile-title>
             </v-list-tile> -->
 
-          <v-list-tile ripple v-if="mode === 'analyzer'" router :to="analyzer.to" v-for="(analyzer, i) in analyzers" :key="i">
+          <v-list-tile ripple v-if="mode === 'analyzer'" router :to="analyzer.to" v-for="(analyzer, i) in analyzers"
+            :key="i">
             <v-list-tile-action>
               <v-icon v-text="analyzer.icon"></v-icon>
             </v-list-tile-action>
@@ -143,6 +145,10 @@
         icon: '',
         title: 'Log',
         to: '/log'
+      }, {
+        icon: 'folder',
+        title: 'Get File',
+        to: '/getfile'
       }],
       analyzers: [],
       storages: [{
@@ -203,7 +209,7 @@
       },
     },
     watch: {
-      refresh (val) {
+      refresh(val) {
         if (!val) return
 
         setTimeout(() => {
@@ -212,7 +218,7 @@
           // this.refreshing();
         }, 2000);
       },
-      mode (value) {
+      mode(value) {
         var appname = 'LinearVaccine';
         switch (value) {
           case 'collector':
@@ -228,12 +234,15 @@
             break;
         }
       },
-      first (value) {
-        if (!value) return
-        if (value === true) {
-          this.$router.push('/first')
-          value = false
+      first: {
+        handler(value) {
+          if (!value) return
+          if (value === true) {
+            this.$router.push('/first')
+            value = false
+          }
         }
+
       }
     }
   }
