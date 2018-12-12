@@ -290,9 +290,8 @@ ipcMain.on('receiveFile', function(event, message) {
 
 ipcMain.on('unknownRequest', function(event, msg) {
   console.log('unknownREQ In');
-  fs.readFile(path.join(__dirnam,'../../Malware.zip'), function(err, data) {
-      console.log(path.join(__dirname, '../../Malware.zip'));
-      console.log(data);
+  fs.readFile('./output/unknown', function(err, data) {
+      // console.log(data);
       var encoded_data = base64Encode(data);
       event.sender.send('unknownRequest-meta', 'meta', 'Malware.zip', Buffer.from(data).length, Math.round((Buffer.from(data).length/chunkSize)));
       for(var i=0, j=0; i<encoded_data.length; i+=chunkSize, j++) {

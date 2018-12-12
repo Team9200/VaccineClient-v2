@@ -302,27 +302,27 @@
                         console.log("Error when creating an answer"); 
                     });
                 };
-                function sendFile() {
-                    var unknownSample = new Object();
-                    var unknownSampleMeta = new Object();
-                    // sendProgress.value = '40';
-                    ipcRenderer.send('unknownRequest');
-                    ipcRenderer.on('unknownRequest-meta', (event, type, filename, size, pieces) => {
-                        unknownSampleMeta.type = type;
-                        unknownSampleMeta.filename = filename;
-                        unknownSampleMeta.size = size;
-                        unknownSampleMeta.pieces = pieces;
-                        sendJSON(JSON.stringify(unknownSampleMeta));
-                        console.log(JSON.stringify(unknownSampleMeta));
-                    });
-                    ipcRenderer.on('fileRequest-reply', (event, pieceNum, binary) => {
-                        unknownSample.pieceNum = pieceNum;
-                        unknownSample.binary = binary;
-                        sendJSON(JSON.stringify(unknownSample));
-                        console.log(JSON.stringify(unknownSample));
-                    });
-                    // sendProgress.value = '70';
-                };
+                // function sendFile() {
+                //     var unknownSample = new Object();
+                //     var unknownSampleMeta = new Object();
+                //     // sendProgress.value = '40';
+                //     ipcRenderer.send('unknownRequest');
+                //     ipcRenderer.on('unknownRequest-meta', (event, type, filename, size, pieces) => {
+                //         unknownSampleMeta.type = type;
+                //         unknownSampleMeta.filename = filename;
+                //         unknownSampleMeta.size = size;
+                //         unknownSampleMeta.pieces = pieces;
+                //         sendJSON(JSON.stringify(unknownSampleMeta));
+                //         console.log(JSON.stringify(unknownSampleMeta));
+                //     });
+                //     ipcRenderer.on('unknownRequest-reply', (event, pieceNum, binary) => {
+                //         unknownSample.pieceNum = pieceNum;
+                //         unknownSample.binary = binary;
+                //         sendJSON(JSON.stringify(unknownSample));
+                //         console.log(JSON.stringify(unknownSample));
+                //     });
+                //     // sendProgress.value = '70';
+                // };
                 function handleAnswer(answer) { 
                     yourConn.setRemoteDescription(new RTCSessionDescription(answer)); 
                 };
