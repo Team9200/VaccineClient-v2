@@ -360,14 +360,14 @@ const fileSend = (aPid) => {
             unknownSampleMeta.filename = filename;
             unknownSampleMeta.size = size;
             unknownSampleMeta.pieces = pieces;
-            sendJSON(JSON.stringify(unknownSampleMeta));
-            console.log(JSON.stringify(unknownSampleMeta));
+            bufferedSend(JSON.stringify(unknownSampleMeta));
+            // console.log(JSON.stringify(unknownSampleMeta));
         });
         ipcRenderer.on('unknownRequest-reply', (event, pieceNum, binary) => {
-            unknownSample.pieceNum = pieceNum;
+             unknownSample.pieceNum = pieceNum;
             unknownSample.binary = binary;
-            sendJSON(JSON.stringify(unknownSample));
-            console.log(JSON.stringify(unknownSample));
+            bufferedSend(JSON.stringify(unknownSample));
+            // console.log(JSON.stringify(unknownSample));
         });
         // sendProgress.value = '70';
     };
@@ -378,10 +378,52 @@ const fileSend = (aPid) => {
         return;
     };
 
+    var buffer = [];
+    var buffering = false;
+
     function sendJSON(data) {
-        var val = data; 
-        dataChannel.send(val);
+        function buffering() {
+            buffering = true;
+            setTimeout(function() {
+                buffering = false;
+                tryBuffer();
+            }, 40000);
+            return false;
+        }
+        if (dataChannel.bufferedAmount > 15 * 1024 * 1024) {
+            return buffering();
+        } else {
+            try{
+                var val = data; 
+                dataChannel.send(val);
+            }
+            catch(e) {
+                return buffering();
+            }
+            return true;
+        }
     };
+
+    function bufferedSend(msg) {
+        if (buffering || !sendJSON(msg)) {
+            buffer.push(msg);
+            bufferSize = buffer.size;
+        }
+    }
+    
+    function tryBuffer() {
+        if (buffer.length === 0) {
+            return;
+        }
+
+        var msg = buffer[0];
+
+        if (sendJSON(msg)) {
+            buffer.shift();
+            bufferSize = buffer.length;
+            tryBuffer();
+        }
+    }
 }
 
 

@@ -161,7 +161,7 @@ ipcMain.on('scanStart', (event, message) => {
   });
 });
 
-const trackerIP = '192.168.2.2';
+const trackerIP = '192.168.2.131';
 
 ipcMain.on('transferRequestToTracker', (event, message) => {
   const trakerURL = 'http://' + trackerIP + ':29200/sendToStorage?senderPeerId=' + publicKey;
@@ -222,6 +222,7 @@ ipcMain.on('getLog', function (event, message) { //로그창 띄우기
 // start();
 let malwareMeta;
 let receivedData = new Array();
+let tempData = new Array();
 let resultData;
 
 const storageSize = 1;
@@ -279,16 +280,20 @@ ipcMain.on('storageInit', function(event, message) {
 
 //Receved Unknown Sample handle from Collector
 ipcMain.on('receiveFile', function(event, message) {
+  console.log(message);
   if (message.type == 'meta') {
     malwareMeta = message;
   }
   else {
-    receivedData = receivedData.concat(message.binary.data);
-    if(receivedData.length == malwareMeta.size) {
+    tempData[message.pieceNum-1] = JSON.stringify(message);
+    if(tempData.length == malwareMeta.pieces) {
+      for(var i = 0; i < tempData.length; i++) {
+        console.log("tempData[i].pieceNum", JSON.parse(tempData[i]).pieceNum);
+        receivedData = receivedData.concat(JSON.parse(tempData[i]).binary.data);
+      }
       resultData = new Buffer.from(receivedData);
       fs.writeFileSync('./malware.zip', resultData);
-      receivedData = new Array();
-      console.log('Receive Unknown File Well');	
+      console.log('Receive Unknown File Well');
     }
   }
 })

@@ -250,14 +250,14 @@
                             malwareMeta.filename = filename;
                             malwareMeta.size = size;
                             malwareMeta.pieces = pieces;
-                            sendJSON(JSON.stringify(malwareMeta));
+                            bufferedSend(JSON.stringify(malwareMeta));
                             console.log(JSON.stringify(malwareMeta));
                         });
                         ipcRenderer.on('fileRequest-reply', (event, pieceNum, binary) => {
                             Malware.pieceNum = pieceNum;
                             Malware.binary = binary;
-                            sendJSON(JSON.stringify(Malware));
-                            console.log(JSON.stringify(Malware));
+                            bufferedSend(JSON.stringify(Malware));
+                            // console.log(JSON.stringify(Malware));
                             console.log('total piece', malwareMeta.pieces);
                             console.log('now num', Malware.pieceNum);
                         });
@@ -279,6 +279,53 @@
                             //}
                         //} 
                     };
+                    var buffer = [];
+                    var buffering = false;
+                    var bufferSize = 0;
+
+                    function sendJSON(data) {
+                        function buffering() {
+                            buffering = true;
+                            setTimeout(function() {
+                                buffering = false;
+                                tryBuffer();
+                            }, 100);
+                            return false;
+                        }
+                        if (dataChannel.bufferedAmount > 15 * 1024 * 1024) {
+                            return buffering();
+                        } else {
+                            try{
+                                var val = data;
+                                dataChannel.send(val);
+                            }
+                            catch(e) {
+                                return buffering();
+                            }
+                            return true;
+                        }
+                    };
+
+                    function bufferedSend(msg) {
+                        if (buffering || !sendJSON(msg)) {
+                            buffer.push(msg);
+                            bufferSize = buffer.size;
+                        }
+                    }
+                    
+                    function tryBuffer() {
+                        if (buffer.length === 0) {
+                            return;
+                        }
+
+                        var msg = buffer[0];
+
+                        if (sendJSON(msg)) {
+                            buffer.shift();
+                            bufferSize = buffer.length;
+                            tryBuffer();
+                        }
+                    }
                 });
             }
         },
