@@ -73,6 +73,7 @@
             //Wait File Request Event
             this.$electron.ipcRenderer.on('collectorPid', (event, cPid) => { fileReceive(cPid) });
             this.$electron.ipcRenderer.on('analyzerPid', (event, aPid) => { setTimeout(() => { fileSend(aPid) }, 5000); });
+            this.$electron.ipcRenderer.on('storagePid', (event, sPid) => { setTimeout(() => { fileSend(sPid) }, 5000); });
         },
         methods: {
             

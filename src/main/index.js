@@ -264,10 +264,16 @@ ipcMain.on('storageInit', function(event, message) {
     event.sender.send('analyzerPid', analyzerPid);
 
     //extrect random unknown sample
-    fs.writeFile('./storage/give', '', (err) => {
+    fs.writeFileSync('./storage/give', '');
+  });
 
-      });
-    });
+  expressApp.get('/malwareStoS', (request, response) => {
+    console.log('get malware S to S');
+    const storagePid = request.query.peerId;
+
+    event.sender.send('storagePid', storagePid);
+  })
+
   start();
 });
 
@@ -287,13 +293,13 @@ ipcMain.on('receiveFile', function(event, message) {
   }
 })
 
-
+//Send Unknown Sample to Analyzer
 ipcMain.on('unknownRequest', function(event, msg) {
   console.log('unknownREQ In');
   fs.readFile('./output/unknown', function(err, data) {
       // console.log(data);
       var encoded_data = base64Encode(data);
-      event.sender.send('unknownRequest-meta', 'meta', 'Malware.zip', Buffer.from(data).length, Math.round((Buffer.from(data).length/chunkSize)));
+      event.sender.send('unknownRequest-meta', 'meta', 'unknown.zip', Buffer.from(data).length, Math.round((Buffer.from(data).length/chunkSize)));
       for(var i=0, j=0; i<encoded_data.length; i+=chunkSize, j++) {
           sliced_data = sliceEncodedData(encoded_data, i);
           event.sender.send('unknownRequest-reply', j, sliced_data);
@@ -301,6 +307,43 @@ ipcMain.on('unknownRequest', function(event, msg) {
       }
   });
 });
+
+
+//Send Unknown Sample to Storage
+ipcMain.on('malwareRequest', function(event, msg) {
+  console.log('malware REQ In');
+  fs.readFile('./output/unknown', function(err, data) {
+    var encoded_data = base64Encode(data);
+    event.sender.send('malwareRequest-meta', 'meta', 'Malware.zip', Buffer.from(data).length, Math.round((Buffer.from(data).length/chunkSize)));
+    for(var i=0, j=0; i<encoded_data.length; i+=chunkSize, j++) {
+        sliced_data = sliceEncodedData(encoded_data, i);
+        event.sender.send('malwareRequest-reply', j, sliced_data);
+        if(j+1 == Math.ceil((Buffer.from(data).length/chunkSize))) event.sender.send('end');
+    }
+  })
+});
+
+ipcMain.on('requestMalware-tracker', function(event, message) {
+  //tracker URL
+  //send GET message
+  //get storage IP 
+  //ipc communication sig serv and peerid
+});
+
+ipcMain.on('receiveMalware', function(event, message) {
+  if (message.type == 'meta') {
+    malwareMeta = message;
+  }
+  else {
+    receivedData = receivedData.concat(message.binary.data);
+    if(receivedData.length == malwareMeta.size) {
+      resultData = new Buffer.from(receivedData);
+      fs.writeFileSync('./SampleMalware.zip', resultData);
+      receivedData = new Array();
+      console.log('Receive Malware Well');	
+    }
+  }
+})
 
 
 ipcMain.on('getFSHeader', function(event, message) {
