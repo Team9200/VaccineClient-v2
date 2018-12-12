@@ -8,18 +8,21 @@
                 <v-btn color="green">Search</v-btn>
             </v-flex>
         </v-layout>
-        <v-layout>
+        <div style="overflow-x: auto;" v-for="(item, i) in items" :key="i">
             <v-card width="100%">
                 <v-card-title>
-                    Ransomware | 0.34 Coin | 2018.11.27
+                    {{ item.title }}
                 </v-card-title>
                 <v-card-text>
-                    http://openti.info/?num=123
+                    {{ item.url }}
                 </v-card-text>
             </v-card>
-           
-        </v-layout>
-        
+            <br>
+        </div>
+        <div>
+            <v-spacer></v-spacer>
+            <v-btn color="green">Pay for Sample</v-btn>
+        </div>
     </div>
 </template>
 
@@ -27,7 +30,23 @@
     export default {
         name: 'get-file-view',
         data: () => ({
-            keyword: ''
+            keyword: '',
+            items: [
+                {
+                    title: 'Ransomware | 0.34 Coin | 2018.11.27',
+                    url: 'http://openti.info/?num=123'
+                },
+                {
+                    title: 'Ransomware | 0.34 Coin | 2018.11.27',
+                    url: 'http://openti.info/?num=123'
+                },{
+                    title: 'Ransomware | 0.34 Coin | 2018.11.27',
+                    url: 'http://openti.info/?num=123'
+                },{
+                    title: 'Ransomware | 0.34 Coin | 2018.11.27',
+                    url: 'http://openti.info/?num=123'
+                }
+            ]
         })
     }
 </script>
