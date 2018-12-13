@@ -254,4 +254,13 @@
   @import url('https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons');
   @import url('https://use.fontawesome.com/releases/v5.5.0/css/all.css');
   /* Global CSS */
+  ::-webkit-scrollbar {     
+          background-color: #343434;
+          width: .8em
+  }
+  ::-webkit-scrollbar-thumb:window-inactive,
+  ::-webkit-scrollbar-thumb {
+          background:  black
+  }
+
 </style>
