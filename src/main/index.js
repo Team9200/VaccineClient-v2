@@ -122,7 +122,7 @@ ipcMain.on('scanStart', (event, message) => {
   let scanPath = message.path;
   const options = {
     mode: 'text',
-    scriptPath: path.join(vaccinePath, '\\engine'),
+    scriptPath: path.join(vaccinePath, '/engine'),
     args: [scanPath]
   };
   PythonShell.run('linvlib.py', options, function (err, results) {
@@ -131,7 +131,7 @@ ipcMain.on('scanStart', (event, message) => {
     const scanResultJSON = JSON.parse(scanResultStr);
 
     //scan log
-    const logPath = path.join(vaccinePath, '\\log.json');
+    const logPath = path.join(vaccinePath, '/log.json');
     console.log(logPath);
     const dt = new Date().toFormat('YYYY-MM-DD HH24:MI:SS');
 
@@ -184,7 +184,7 @@ const chunkSize = 16384;
 var sliced_data = '';
 ipcMain.on('fileRequest', function(event, msg) {
   //file send log
-  const logPath = path.join(vaccinePath, '\\log.json');
+  const logPath = path.join(vaccinePath, '/log.json');
   const dt = new Date().toFormat('YYYY-MM-DD HH24:MI:SS');
 
   const newLog = {
