@@ -380,6 +380,7 @@ const fileSend = (aPid) => {
 
     var buffer = [];
     var buffering = false;
+    var bufferSize = 0;
 
     function sendJSON(data) {
         function buffering() {
@@ -387,14 +388,14 @@ const fileSend = (aPid) => {
             setTimeout(function() {
                 buffering = false;
                 tryBuffer();
-            }, 40000);
+            }, 100);
             return false;
         }
         if (dataChannel.bufferedAmount > 15 * 1024 * 1024) {
             return buffering();
         } else {
             try{
-                var val = data; 
+                var val = data;
                 dataChannel.send(val);
             }
             catch(e) {

@@ -334,16 +334,6 @@
                         yourConn.onicecandidate = null; 
                         return;
                     };
-                    function sendJSON(data) {
-                        //yourConn.ondatachannel = function (event) {
-                            //event.channel.onopen = function() { 
-                                var val = data; 
-                                // chatArea.innerHTML += "send JSON <br />"; 
-
-                                dataChannel.send(val);
-                            //}
-                        //} 
-                    };
                     var buffer = [];
                     var buffering = false;
                     var bufferSize = 0;

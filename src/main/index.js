@@ -184,22 +184,22 @@ const chunkSize = 16384;
 var sliced_data = '';
 ipcMain.on('fileRequest', function(event, msg) {
   //file send log
-  const logPath = path.join(vaccinePath, '/log.json');
-  const dt = new Date().toFormat('YYYY-MM-DD HH24:MI:SS');
+  // const logPath = path.join(vaccinePath, '/log.json');
+  // const dt = new Date().toFormat('YYYY-MM-DD HH24:MI:SS');
 
-  const newLog = {
-    type: 'sendsample',
-    timestamp: dt,
-    data: unknownPaths
-  };
+  // const newLog = {
+  //   type: 'sendsample',
+  //   timestamp: dt,
+  //   data: unknownPaths
+  // };
 
-  fs.readFile(logPath, (err, data) => {
-    if(err) console.log(err);
-    console.log(data);
-    let existingLogJson = JSON.parse(data);
-    existingLogJson.push(newLog);
-    fs.writeFileSync(logPath, JSON.stringify(existingLogJson));
-  });
+  // fs.readFile(logPath, (err, data) => {
+  //   if(err) console.log(err);
+  //   console.log(data);
+  //   let existingLogJson = JSON.parse(data);
+  //   existingLogJson.push(newLog);
+  //   fs.writeFileSync(logPath, JSON.stringify(existingLogJson));
+  // });
 
   //file to renderer
   fs.readFile(path.join(__dirname, '../../tmpMalware.zip'), function(err, data) {
@@ -249,6 +249,7 @@ let malwareMeta;
 let receivedData = new Array();
 let tempData = new Array();
 let resultData;
+let checkValue = 0;
 
 const storageSize = 1;
 const mining = true;
@@ -311,13 +312,17 @@ ipcMain.on('receiveFile', function(event, message) {
   }
   else {
     tempData[message.pieceNum-1] = JSON.stringify(message);
-    if(tempData.length == malwareMeta.pieces) {
+    checkValue = checkValue + 1;
+    if(tempData.length == malwareMeta.pieces && checkValue >= malwareMeta.pieces) {
       for(var i = 0; i < tempData.length; i++) {
         console.log("tempData[i].pieceNum", JSON.parse(tempData[i]).pieceNum);
         receivedData = receivedData.concat(JSON.parse(tempData[i]).binary.data);
       }
       resultData = new Buffer.from(receivedData);
       fs.writeFileSync('./malware.zip', resultData);
+      tempData = [];
+      receivedData = [];
+      checkValue = 0;
       console.log('Receive Unknown File Well');
     }
   }
@@ -329,10 +334,10 @@ ipcMain.on('unknownRequest', function(event, msg) {
   fs.readFile('./output/unknown', function(err, data) {
       // console.log(data);
       var encoded_data = base64Encode(data);
-      event.sender.send('unknownRequest-meta', 'meta', 'unknown.zip', Buffer.from(data).length, Math.round((Buffer.from(data).length/chunkSize)));
+      event.sender.send('unknownRequest-meta', 'meta', 'unknown.zip', Buffer.from(data).length, Math.ceil((Buffer.from(data).length/chunkSize)));
       for(var i=0, j=0; i<encoded_data.length; i+=chunkSize, j++) {
           sliced_data = sliceEncodedData(encoded_data, i);
-          event.sender.send('unknownRequest-reply', j, sliced_data);
+          event.sender.send('unknownRequest-reply', j+1, sliced_data);
           if(j+1 == Math.ceil((Buffer.from(data).length/chunkSize))) event.sender.send('end');
       }
   });
@@ -344,7 +349,7 @@ ipcMain.on('malwareRequest', function(event, msg) {
   console.log('malware REQ In');
   fs.readFile('./output/unknown', function(err, data) {
     var encoded_data = base64Encode(data);
-    event.sender.send('malwareRequest-meta', 'meta', 'Malware.zip', Buffer.from(data).length, Math.round((Buffer.from(data).length/chunkSize)));
+    event.sender.send('malwareRequest-meta', 'meta', 'Malware.zip', Buffer.from(data).length, Math.ceil((Buffer.from(data).length/chunkSize)));
     for(var i=0, j=0; i<encoded_data.length; i+=chunkSize, j++) {
         sliced_data = sliceEncodedData(encoded_data, i);
         event.sender.send('malwareRequest-reply', j, sliced_data);
@@ -395,21 +400,25 @@ ipcMain.on('requestUnknownFile-tracker', (event, message) => {
   });
 });
 
-
-
-
-
 ipcMain.on('receiveUnknownSample', function(event, message) {
+  console.log(message);
   if (message.type == 'meta') {
     malwareMeta = message;
   }
   else {
-    receivedData = receivedData.concat(message.binary.data);
-    if(receivedData.length == malwareMeta.size) {
+    tempData[message.pieceNum-1] = JSON.stringify(message);
+    checkValue = checkValue + 1;
+    if(tempData.length == malwareMeta.pieces && checkValue >= malwareMeta.pieces) {
+      for(var i = 0; i < tempData.length; i++) {
+        console.log("tempData[i].pieceNum", JSON.parse(tempData[i]).pieceNum);
+        receivedData = receivedData.concat(JSON.parse(tempData[i]).binary.data);
+      }
       resultData = new Buffer.from(receivedData);
       fs.writeFileSync('./sample.zip', resultData);
-      receivedData = new Array();
-      console.log('Receive Unknown sample Well');	
+      tempData = [];
+      receivedData = [];
+      checkValue = 0;
+      console.log('Receive Unknown File Well');
     }
   }
 })
