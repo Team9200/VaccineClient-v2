@@ -82,7 +82,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="(item, i) in InfectedPaths" :key="i">
+                        <tr v-for="(item, i) in infectedPaths" :key="i">
                             <td><span color="red">{{ item }}</span></td>
                         </tr>
                     </tbody>
@@ -400,6 +400,7 @@
                 const scanResult = JSON.parse(message);
                 console.log(typeof(scanResult), scanResult);
                 this.scannedPaths = scanResult.ScannedPaths;
+                this.infectedPaths = scanResult.InfectedPaths;
                 console.log(this.scannedPaths);
             });
 
