@@ -2,7 +2,7 @@
     <div>
         <v-layout>
             <v-flex>
-                <v-text-field style="width: 800px;" v-model="keyword" label="keyword"></v-text-field>
+                <v-text-field style="width: 550px;" v-model="keyword" label="keyword"></v-text-field>
             </v-flex>
             <v-flex>
                 <v-btn color="green">Search</v-btn>
