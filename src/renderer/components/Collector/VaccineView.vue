@@ -3,7 +3,8 @@
         <v-flex xs12>
             <!-- <h1>Vaccine</h1> -->
             <!-- scan -->
-            <v-card>
+            <!-- 이전 뷰 -->
+            <!-- <v-card>
                 <v-card-title primary-title>
                     <div>
                         <input type="file" @change="pathIn($event)" directory webkitdirectory>
@@ -37,7 +38,70 @@
                         </v-card>
                     </v-dialog>
                 </v-card-actions>
+            </v-card> -->
+
+            <v-card>
+                <v-card-title primary-title>
+                    <div>
+                        <input type="file" @change="pathIn($event)" directory webkitdirectory>
+                    </div>
+                    <v-btn @click="scanStart" slot="activator" color="green" dark>  
+                            Detect
+                    </v-btn>
+                </v-card-title>
             </v-card>
+            <v-card>
+                <v-dialog v-model="dialog" width="700">
+                    <v-btn  slot="activator" color="green" dark>  
+                        전송
+                    </v-btn>
+
+                    <v-card>
+                        <v-card-title class="headline">
+                            Send Report
+                        </v-card-title>
+
+                        <v-card-text>
+                                검사 결과를 보내실 겁니까?
+                        </v-card-text>
+
+                        <v-divider></v-divider>
+
+                        <v-card-actions>
+                            <v-spacer></v-spacer>
+                            <v-btn color="green" flat @click="transferRequestToTracker">
+                                I accept
+                            </v-btn>
+                        </v-card-actions>
+                    </v-card>
+                </v-dialog>
+                <table class='tbl-scanResult'>
+                    <thead>
+                        <tr>
+                            <th>Infected List</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="(item, i) in InfectedPaths" :key="i">
+                            <td><span color="red">{{ item }}</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table class='tbl-scanResult'>
+                    <thead>
+                        <tr>
+                            <th>Scanned List (Unknown)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="(item, i) in scannedPaths" :key="i">
+                            <td>{{ item }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </v-card>
+
+
         </v-flex>
     </v-layout>
 </template>
@@ -52,7 +116,8 @@
                 dialog2: '',
                 dialog3: '',
                 scanPath: new String(),
-                scannedPaths: '검사중.......',
+                scannedPaths: [''],
+                infectedPaths: ['']
                 // vaccinePath: '',
             }
         },
@@ -563,5 +628,39 @@
 </script>
 
 <style>
+    .tbl-scanResult {
+        background: #eee;
+        border-collapse: separate;
+        box-shadow: inset 0 1px 0 #fff;
+        font-size: 12px;
+        line-height: 24px;
+        margin: 30px auto;
+        text-align: left;
+        width: 100%;
+    }	
 
+    .tbl-scanResult th {
+        background: #444;
+        border-left: 1px solid #555;
+        border-right: 1px solid #777;
+        border-top: 1px solid #555;
+        border-bottom: 1px solid #333;
+        box-shadow: inset 0 1px 0 #999;
+        color: #fff;
+        font-weight: bold;
+        padding-left: 15px;
+        position: relative;
+        text-shadow: 0 1px 0 #000;	
+    }
+
+    .tbl-scanResult td {
+        border-right: 1px solid #fff;
+        border-left: 1px solid #e8e8e8;
+        border-top: 1px solid #fff;
+        border-bottom: 1px solid #e8e8e8;
+        position: relative;
+        padding-left: 15px;
+        color: #333;
+        transition: all 300ms;
+    }
 </style>

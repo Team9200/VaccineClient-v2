@@ -46,11 +46,10 @@
                                     <v-text-field prepend-icon="link" v-model="storageSize" label="storage size"></v-text-field>
                                 </v-flex>
                                 <v-flex xs12>
-                                    <v-text-field prepend-icon="key" v-model="pk" label="public key"></v-text-field>
-
+                                    <v-text-field prepend-icon="vpn_key" v-model="pk" label="public key" style="font-size:13px"></v-text-field>
                                 </v-flex>
                                 <v-flex xs12>
-                                    <v-text-field prepend-icon="key" v-model="sk" label="secret key"></v-text-field>
+                                    <v-text-field prepend-icon="vpn_key" v-model="sk" label="secret key" style="font-size:13px"></v-text-field>
                                 </v-flex>
                             </v-container>
                         </v-layout>
@@ -96,7 +95,10 @@
 </template>
 
 <script>
-    import RefreshView from './RefreshView'
+    import RefreshView from './RefreshView';
+    import secp256k1 from 'secp256k1';
+    import bs58check from 'bs58check';
+    import { randomBytes } from 'crypto';
     export default {
         data() {
             return {
@@ -113,13 +115,26 @@
                     'Collector',
                     'Analyzer',
                     'Storage'
-                ]
+                ],
+                publicKey: '',
+                secretKey: ''
             }
         },
         components: {
             RefreshView
         },
         methods: {
+            getPrivKey() {
+                let privKey;
+                do {
+                    privKey = randomBytes(32)
+                } while (!secp256k1.privateKeyVerify(privKey))
+                return privKey;
+            },
+            getPubKey (privKey) {
+                let pubKey = secp256k1.publicKeyCreate(privKey);
+                return pubKey;
+            },
             getFormData(files) {
                 const data = new FormData();
                 [...files].forEach(file => {
@@ -171,6 +186,14 @@
                 ipcRenderer.send('reload', 'ping');
                 this.$router.push('/')
             }
+        },
+        mounted () {
+            var sk = this.getPrivKey();
+            var pk = this.getPubKey(sk);
+            this.sk = sk.toString('hex');
+            this.pk = pk.toString('hex');
+            console.log(typeof(this.secretKey), this.secretKey);
+            console.log(this.publicKey);
         },
         watch: {
             node(val) {

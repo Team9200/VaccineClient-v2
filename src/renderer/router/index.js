@@ -26,11 +26,6 @@ export default new Router({
       component: require('@/components/Collector/LogView').default
     },
     {
-      path: '/sendFile',
-      name: 'sendFile-view',
-      component: require('@/components/Collector/sendFile').default
-    },
-    {
       path: '/filelist',
       name: 'file-list-view',
       component: require('@/components/Storage/FileListView').default

@@ -1,7 +1,8 @@
 <template>
     <div style="width: 100%">
         <v-container fluid grid-list-md>
-            <v-layout row wrap>
+            <!-- 이전 뷰 -->
+            <!-- <v-layout row wrap>
                 <v-flex lg3 sm6 xs12>
                     <status-component title="100+" sub-title="Warning" color="yellow darken-3">
                     </status-component>
@@ -11,14 +12,6 @@
                     </status-component>
                 </v-flex>
                 
-                <!-- <v-flex lg3 sm6 xs12>
-                    <status-component title="200+" sub-title="Followers" color="light-blue">
-                    </status-component>
-                </v-flex>
-                <v-flex lg3 sm6 xs12>
-                    <status-component title="50+" sub-title="Shots" color="purple">
-                    </status-component>
-                </v-flex> -->
             </v-layout>
 
             <v-layout row wrap>
@@ -26,19 +19,37 @@
                     <v-btn style="height: 206px; font-size: 15px;" router :to="items[0].to" block color="green" dark>{{
                         items[0].title }}</v-btn>
                 </v-flex>
-            </v-layout>
-            <!-- <h1>Home</h1>
-            <v-layout row wrap>
-                <v-flex d-flex xs12 sm6>
-                    <v-btn style="height: 206px; font-size: 15px;" router :to="items[0].to" block color="green" dark>{{
-                        items[0].title }}</v-btn>
-                </v-flex>
-                <v-flex xs12 sm6>
-                    <v-btn style="height: 100px; font-size: 15px;" router :to="items[1].to" block color="green"
-                                dark>{{ items[1].title }}</v-btn>
-                    <v-btn style="height: 100px; font-size: 15px;" router :to="items[2].to" block color="green" dark>{{ items[2].title }}</v-btn>
-                </v-flex>
             </v-layout> -->
+
+            <v-layout row wrap>
+                <v-flex lg3 sm6 xs12>
+                    <v-btn style="height: 180px; font-size: 15px; border-radius: 60px; border: 5px solid #5B7F29" router :to="items[0].to" block color="#8dc540" dark>
+                        <v-icon class="mainIcon" x-large>security</v-icon><span class="menuText">{{ items[0].title }}</span></v-btn>
+                </v-flex>
+                <v-flex lg3 sm6 xs12>
+                    <v-btn style="height: 180px; font-size: 15px; border-radius: 60px; border: 5px solid #03787F" @click="feedback" block color="#05b7c3" dark>
+                        <v-icon class="mainIcon" x-large>add_comment</v-icon><span class="menuText">Feedback</span>
+                        </v-btn>
+
+                </v-flex>
+
+            </v-layout>
+
+            <v-layout row wrap>
+               <v-flex d-flex xs12 sm4>
+                    <v-btn style="height: 180px; font-size: 15px; border-radius: 30px; border: 5px solid #3B2B40;" router :to="items[2].to" block color="#77567F" dark>
+                        <v-icon class="mainIcon" x-large>history</v-icon><span class="menuText">{{ items[2].title }}</span></v-btn>
+                </v-flex>
+                <v-flex d-flex xs12 sm4>
+                    <v-btn style="height: 180px; font-size: 15px; border-radius: 30px; border: 5px solid #7F590D;" router :to="items[1].to" block color="#f4ab18" dark>
+                        <v-icon class="mainIcon" x-large>gavel</v-icon><span class="menuText">{{ items[1].title }}</span></v-btn>
+                </v-flex>
+                <v-flex d-flex xs12 sm4>
+                    <v-btn style="height: 180px; font-size: 15px; border-radius: 30px; border: 5px solid #7F590D;" router :to="items[3].to" block color="#f6782d" dark>
+                        <v-icon class="mainIcon" x-large>account_balance_wallet</v-icon><span class="menuText">{{ items[3].title }}</span></v-btn>
+                </v-flex>
+            </v-layout>
+
         </v-container>
     </div>
 </template>
@@ -65,8 +76,27 @@
                 {
                     title: 'Log',
                     to: '/log'
+                },
+                {
+                    title: 'Wallet',
+                    to: '/wallet'
                 }
             ]
-        })
+        }),
+        methods: {
+            feedback() {
+                console.log('feedback clicked');
+            }
+        }
     }
 </script>
+<style>
+    .mainIcon {
+        position: absolute;
+        top: -30px;
+    }
+    .menuText {
+        position: absolute;
+        top: 10px;
+    }
+</style>

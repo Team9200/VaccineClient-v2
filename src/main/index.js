@@ -44,9 +44,9 @@ function createWindow() {
    */
   
   mainWindow = new BrowserWindow({
-    height: 590,
+    height: 530,
     useContentSize: true,
-    width: 1000,
+    width: 700,
     resizable: false,
     // frame: false
     backgroundColor: '#303030'
@@ -130,15 +130,21 @@ ipcMain.on('scanStart', (event, message) => {
     const scanResultStr = results.toString().replace(/'/gi, '"').replace(/u\"/gi, '"');
     const scanResultJSON = JSON.parse(scanResultStr);
 
-    //scan lo
-    const logPath = path.join(vaccinePath, '/log.json');
+    //scan log
+    const logPath = path.join(vaccinePath, '\\log.json');
+    console.log(logPath);
     const dt = new Date().toFormat('YYYY-MM-DD HH24:MI:SS');
 
-    const newLog = '[SCAN]'+ dt + 'start - ' + scanPath;
+    const newLog = {
+      type: 'scan',
+      timestamp: dt,
+      data: scanPath
+    };
 
     fs.readFile(logPath, (err, data) => {
       if(err) console.log(err);
-      const existingLogJson = JSON.parse(data);
+      console.log(data);
+      let existingLogJson = JSON.parse(data);
       existingLogJson.push(newLog);
       fs.writeFileSync(logPath, JSON.stringify(existingLogJson));
     });
@@ -177,14 +183,33 @@ ipcMain.on('transferRequestToTracker', (event, message) => {
 const chunkSize = 16384;
 var sliced_data = '';
 ipcMain.on('fileRequest', function(event, msg) {
-    fs.readFile(path.join(__dirname, '../../tmpMalware.zip'), function(err, data) {
-        let encoded_data = base64Encode(data);
-        event.sender.send('fileRequest-meta', 'meta', 'Malware.zip', Buffer.from(data).length, Math.ceil((Buffer.from(data).length/chunkSize)));
-        for(let i=0, j=0; i<encoded_data.length; i+=chunkSize, j++) {
-            sliced_data = sliceEncodedData(encoded_data, i);
-            event.sender.send('fileRequest-reply', j + 1, sliced_data);
-        }
-    });
+  //file send log
+  const logPath = path.join(vaccinePath, '\\log.json');
+  const dt = new Date().toFormat('YYYY-MM-DD HH24:MI:SS');
+
+  const newLog = {
+    type: 'sendsample',
+    timestamp: dt,
+    data: unknownPaths
+  };
+
+  fs.readFile(logPath, (err, data) => {
+    if(err) console.log(err);
+    console.log(data);
+    let existingLogJson = JSON.parse(data);
+    existingLogJson.push(newLog);
+    fs.writeFileSync(logPath, JSON.stringify(existingLogJson));
+  });
+
+  //file to renderer
+  fs.readFile(path.join(__dirname, '../../tmpMalware.zip'), function(err, data) {
+      let encoded_data = base64Encode(data);
+      event.sender.send('fileRequest-meta', 'meta', 'Malware.zip', Buffer.from(data).length, Math.ceil((Buffer.from(data).length/chunkSize)));
+      for(let i=0, j=0; i<encoded_data.length; i+=chunkSize, j++) {
+          sliced_data = sliceEncodedData(encoded_data, i);
+          event.sender.send('fileRequest-reply', j + 1, sliced_data);
+      }
+  });
 });
 
 // quarantine
@@ -410,8 +435,12 @@ ipcMain.on('setMode', (event, message) => {
 
 ipcMain.on('setVaccinePath', (event, message) => {
   storage.set('vaccine', {path: message});
-});
+})
 
+ipcMain.on('getMyKeySend', (event, message) => {
+  console.log(publicKey, secretKey);
+  event.sender.send('getMyKeyOn', publicKey, secretKey);
+});
 
 //
 //  * Auto Updater
