@@ -55,7 +55,6 @@
 </template>
 
 <script>
-    import { signalingServer } from '../../util/signalingServer';
     import { fileReceive, fileSend } from '../../util/webRTCModule'
     export default {
         name: 'storage-home-view',
@@ -66,9 +65,7 @@
             //Storage Init
             this.$electron.ipcRenderer.send('storageInit');
             this.$electron.ipcRenderer.send('waitCollector');
-
-            //Signaling Server On
-            signalingServer();
+            this.$electron.ipcRenderer.send('runSignalingServer');
 
             //Wait File Request Event
             this.$electron.ipcRenderer.on('collectorPid', (event, cPid) => { fileReceive(cPid) });

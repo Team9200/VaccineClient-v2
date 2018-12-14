@@ -20,8 +20,10 @@ import { deleteFolderRecursive, base64Encode, sliceEncodedData } from './modules
 import { start } from './modules/unknownfs/main';
 import { createStorage } from './modules/unknownfs/createStorage';
 import { headerJson } from './modules/unknownfs/headerParse';
+import { signalingServer } from '../renderer/util/signalingServer';
 
 import http from 'http';
+import { sign } from 'electron-builder-lib/out/windowsCodeSign';
 
 require('date-utils');
 
@@ -181,7 +183,7 @@ ipcMain.on('malwareMoveQurantine', (event, message) => {
   });
 });
 
-const trackerIP = '192.168.2.31';
+const trackerIP = '192.168.2.131';
 
 ipcMain.on('transferRequestToTracker', (event, message) => {
   const trakerURL = 'http://' + trackerIP + ':29200/sendToStorage?senderPeerId=' + publicKey;
@@ -268,7 +270,11 @@ let checkValue = 0;
 const storageSize = 1;
 const mining = true;
 
-ipcMain.on('storageInit', function(event, message) {
+ipcMain.once('runSignalingServer', function(event, message) {
+  signalingServer();
+});
+
+ipcMain.once('storageInit', function(event, message) {
   //require dir
   try{ fs.mkdirSync('./storage'); }catch(e){ if ( e.code != 'EEXIST' ) throw e; };
   try{ fs.mkdirSync('./output'); }catch(e){ if ( e.code != 'EEXIST' ) throw e; };
