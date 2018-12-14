@@ -5,7 +5,6 @@
             <v-data-table :headers="headers" :items="files" class="elevation-1">
                 <template slot="items" slot-scope="props">
                   <td>{{ props.item.no }}</td>
-                  <td class="text-xs-right">{{ props.item.type }}</td>
                   <td class="text-xs-right">{{ props.item.hash }}</td>
                   <td class="text-xs-right">{{ props.item.size }}</td>
                 </template>
@@ -26,12 +25,7 @@
                         value: 'name'
                     },
                     {
-                        text: 'Type',
-                        align: 'center',
-                        value: 'type'
-                    },
-                    {
-                        text: 'Hash',
+                        text: 'Hash (SHA256)',
                         align: 'center',
                         value: 'hash'
                     },
@@ -41,57 +35,21 @@
                         value: 'size'
                     }
                 ],
-                files: [
-                    {
-                        value: false,
-                        no: 1,
-                        type: 'Unknown',
-                        hash: '4C1CAA0F730DFF9CC83DD90D0F8618AD924AB5E7D94D42B329F9D5FFF5DDC227',
-                        size: 30000
-                    },
-                    {
-                        value: false,
-                        no: 2,
-                        type: 'Unknown',
-                        hash: '4C1CAA0F730DFF9CC83DD90D0F8618AD924AB5E7D94D42B329F9D5FFF5DDC227',
-                        size: 30000
-                    },
-                    {
-                        value: false,
-                        no: 3,
-                        type: 'Unknown',
-                        hash: '4C1CAA0F730DFF9CC83DD90D0F8618AD924AB5E7D94D42B329F9D5FFF5DDC227',
-                        size: 30000
-                    },
-                    {
-                        value: false,
-                        no: 4,
-                        type: 'Unknown',
-                        hash: '4C1CAA0F730DFF9CC83DD90D0F8618AD924AB5E7D94D42B329F9D5FFF5DDC227',
-                        size: 30000
-                    },
-                    {
-                        value: false,
-                        no: 5,
-                        type: 'Unknown',
-                        hash: '4C1CAA0F730DFF9CC83DD90D0F8618AD924AB5E7D94D42B329F9D5FFF5DDC227',
-                        size: 30000
-                    },
-                    {
-                        value: false,
-                        no: 6,
-                        type: 'Unknown',
-                        hash: '4C1CAA0F730DFF9CC83DD90D0F8618AD924AB5E7D94D42B329F9D5FFF5DDC227',
-                        size: 30000
-                    }
-                ]
+                files: []
             }
         },
-        mounted () {
-            ipcRenderer.send('getFSFileListREQ');
-            ipcRenderer.on('getFSFileListRPY', (event, message)=> {
-                console.log(message.toString());
-                // this.files = message;
+        mounted() {
+            const vm = this;
+            var path = require('path');
+            var fs = require('fs');
+            var no = 1;
+            var filePath = path.join(__dirname, '../../../../header.json');
+            var fileList = fs.readFileSync(filePath, 'utf-8');
+            var data = JSON.parse(fileList);
+            data.some(function(res){
+                console.log(res.sha256);
+                vm.files.push({value: false, no: no, hash: res.sha256, size: res.size});
+                no = no + 1;
             });
         }
     }

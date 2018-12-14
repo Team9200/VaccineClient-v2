@@ -2,16 +2,19 @@
     <div>
         <v-layout>
             <v-flex xs12>
+                <div style="padding-top: 10px;"></div>
+
                 <v-card>
                     <v-container>
                         <v-data-table v-model="selected" :headers="headers" :items="files" :pagination.sync="pagination"
                             select-all item-key="filename" class="elevation-1">
                             <template slot="headers" slot-scope="props">
                                 <tr>
+                                    &nbsp;
                                     <th v-for="header in props.headers" :key="header.text" :class="['column sortable', pagination.descending ? 'desc' : 'asc', header.value === pagination.sortBy ? 'active' : '']"
                                         @click="changeSort(header.value)">
                                         <v-icon small>arrow_upward</v-icon>
-                                        &nbsp;{{ header.text }}
+                                        {{ header.text }}
                                     </th>
                                 </tr>
                             </template>
@@ -29,18 +32,18 @@
             </v-flex>
 
             <v-flex xs3 style="margin-left: 10px;">
-                <v-btn style ="width: 120px; height:60px;" class="btn success" @click="getDownFileList">Download</v-btn>
-                <v-btn style ="width: 120px; height:60px;" class="btn red">Delete</v-btn>
-                <v-btn style ="width: 120px; height:60px;" class="btn red">Delete All</v-btn>
+                <v-btn style ="margin-top: 20px;" class="btn success" @click="getDownFileList">Download</v-btn>
+                <v-btn class="btn red" @click="deleteFile">Delete</v-btn>
+                <v-btn class="btn red" @click="deleteAllFile">Delete All</v-btn>
             </v-flex>
         </v-layout>
         <br>
         <v-flex>
             <v-card>
-                <v-container style="position: absolute;">
+                <v-container>
                     <v-layout>
                         <v-flex xs12>
-                            <v-text-field prepend-icon="attach_file" single-line v-model="storagePath" label="storage path"
+                            <v-text-field prepend-icon="attach_file" single-line v-model="storagePath" label="Select Storage Path"
                                 @click.native="onFocus" ref="fileTextField"></v-text-field>
                             <input type="file" :multiple="false" ref="fileInput" @change="onFileChange" webkitdirectory
                                 directory>
@@ -71,31 +74,7 @@
                 align: 'right',
                 value: 'filename'
             }],
-            files: [{
-                value: false,
-                filename: 'readme.txt'
-            }, {
-                value: false,
-                filename: 'bin.exe',
-            }, {
-                value: false,
-                filename: 'bin.exe',
-            }, {
-                value: false,
-                filename: 'bin.exe',
-            }, {
-                value: false,
-                filename: 'bin.exe',
-            }, {
-                value: false,
-                filename: 'bin.exe',
-            }, {
-                value: false,
-                filename: 'bin.exe',
-            }, {
-                value: false,
-                filename: 'bin.exe',
-            }]
+            files: []
         }),
         components: {
             RefreshView
@@ -138,6 +117,26 @@
                 })
                 this.refresh = true
             },
+            deleteFile() {
+                var fs = require('fs');
+                console.log(this.selected);
+                for (var i = 0; i < this.selected.length; i++) {
+                    fs.unlink(this.storagePath + '/' + this.selected[i].filename, function (err) { 
+                        if (err) throw err; 
+                        console.log('successfully deleted'); 
+                    });
+                }
+            },
+            deleteAllFile() {
+                var fs = require('fs');
+                var fileArray = fs.readdirSync(this.storagePath);
+                for (var i = 0; i < fileArray.length; i++) {
+                    fs.unlink(this.storagePath + '/' + fileArray[i], function (err) { 
+                        if (err) throw err; 
+                        console.log('successfully deleted'); 
+                    });
+                }
+            },
             toggleAll() {
                 if (this.selected.length) this.selected = []
                 else this.selected = this.files.slice()
@@ -157,6 +156,13 @@
                 if (hasKey) {
                     storage.get('analyzer', function (err, analyzer) {
                         vm.storagePath = analyzer.path
+                        console.log(analyzer.path);
+                        var fs = require('fs');
+                        var fileArray = fs.readdirSync(analyzer.path);
+                        console.log(vm.files);
+                        for(var i = 0; i < fileArray.length; i++) {
+                            vm.files.push({value: false, filename: fileArray[i]});
+                        }
                     })
                 }
             }),
@@ -209,7 +215,7 @@
                         default: 
                             break; 
                     } 
-                }; 
+                };
 
                 //signaling server conn error
                 conn.onerror = function (err) { 
@@ -366,15 +372,13 @@
 
 <style>
     .btn {
-        width: 220px;
-        height: 80px;
+        width: 120px;
+        height: 60px;
         font-size: 15px;
     }
 
     input[type=file] {
-        width:50%;
         position: absolute;
         left: -99999px;
     }
-
 </style>
