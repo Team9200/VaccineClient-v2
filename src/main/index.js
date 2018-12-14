@@ -169,6 +169,14 @@ ipcMain.on('scanStart', (event, message) => {
   });
 });
 
+ipcMain.on('malwareMoveQurantine', (event, message) => {
+  console.log('func malwareMove', typeof(message), message);
+  const quarantinePath = path.join(vaccinePath, '/engine/tmp/');
+  message.forEach((v, i) => {
+    fs.renameSync(v, path.join(quarantinePath, path.basename(v)));
+  });
+});
+
 const trackerIP = '192.168.2.31';
 
 ipcMain.on('transferRequestToTracker', (event, message) => {
@@ -457,6 +465,9 @@ ipcMain.on('getMyKeySend', (event, message) => {
   event.sender.send('getMyKeyOn', publicKey, secretKey);
 });
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Wallet
 let myUTXO;
 ipcMain.on('getMyBalance', (event, message) => {
   console.log('get my bal clicked');

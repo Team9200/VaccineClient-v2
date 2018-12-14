@@ -4,16 +4,17 @@
             <!-- <h1>Vaccine</h1> -->
             <!-- scan -->
             <!-- 이전 뷰 -->
-            <!-- <v-card>
-                <v-card-title primary-title>
+            <v-card style="height:70px">
+                <v-card-title primary-title style="height:60px; float:left">
                     <div>
                         <input type="file" @change="pathIn($event)" directory webkitdirectory>
                     </div>
                 </v-card-title>
 
-                <v-card-actions>
+                <!-- 샘플전송 -->
+                <v-card-actions style="float:right; padding:15px">
                     <v-dialog v-model="dialog" width="700">
-                        <v-btn @click="scanStart" slot="activator" color="green" dark>  
+                       <v-btn @click="scanStart" slot="activator" color="green" dark>  
                             Detect
                         </v-btn>
 
@@ -23,8 +24,10 @@
                             </v-card-title>
 
                             <v-card-text>
-                                    <p v-text="scannedPaths"></p>
-                                    검사 결과를 보내실 겁니까?
+                                    <ul>
+                                        <li v-for="(item, i) in unknownPaths" :key="i">{{ item }}</li>
+                                    </ul>
+                                    무료로 당신의 샘플의 정밀분석을 의뢰하시겠습니까?
                             </v-card-text>
 
                             <v-divider></v-divider>
@@ -34,47 +37,44 @@
                                 <v-btn color="green" flat @click="transferRequestToTracker">
                                     I accept
                                 </v-btn>
+                                <v-btn color="green" @click='dialog = false' flat >
+                                    close
+                                </v-btn>
+                            </v-card-actions>
+                        </v-card>
+                    </v-dialog>
+                    <!-- 감염파일 검역소 -->
+                    <v-dialog v-model="dialog" v-if="infectedToQurantine === true" style="float:right; padding:15px" width="700">
+                        <v-card>
+                            <v-card-title class="headline">
+                                Infected Files
+                            </v-card-title>
+
+                            <v-card-text>
+                                    <ul>
+                                        <li v-for="(item, i) in infectedPaths" :key="i">{{ item }}</li>
+                                    </ul>
+                                    감염된 파일들을 검역소로 보내시겠습니까?
+                            </v-card-text>
+
+                            <v-divider></v-divider>
+
+                            <v-card-actions>
+                                <v-spacer></v-spacer>
+                                <v-btn color="green" @click='malwareMoveQurantine' flat >
+                                    I accept
+                                </v-btn>
+                                <v-btn color="green" @click='dialog = false' flat >
+                                    close
+                                </v-btn>
                             </v-card-actions>
                         </v-card>
                     </v-dialog>
                 </v-card-actions>
-            </v-card> -->
 
-            <v-card>
-                <v-card-title primary-title>
-                    <div>
-                        <input type="file" @change="pathIn($event)" directory webkitdirectory>
-                    </div>
-                    <v-btn @click="scanStart" slot="activator" color="green" dark>  
-                            Detect
-                    </v-btn>
-                </v-card-title>
             </v-card>
-            <v-card>
-                <v-dialog v-model="dialog" width="700">
-                    <v-btn  slot="activator" color="green" dark>  
-                        전송
-                    </v-btn>
 
-                    <v-card>
-                        <v-card-title class="headline">
-                            Send Report
-                        </v-card-title>
-
-                        <v-card-text>
-                                검사 결과를 보내실 겁니까?
-                        </v-card-text>
-
-                        <v-divider></v-divider>
-
-                        <v-card-actions>
-                            <v-spacer></v-spacer>
-                            <v-btn color="green" flat @click="transferRequestToTracker">
-                                I accept
-                            </v-btn>
-                        </v-card-actions>
-                    </v-card>
-                </v-dialog>
+            <v-card v-if="scanResultShow === true">
                 <table class='tbl-scanResult'>
                     <thead>
                         <tr>
@@ -90,7 +90,7 @@
                 <table class='tbl-scanResult'>
                     <thead>
                         <tr>
-                            <th>Scanned List (Unknown)</th>
+                            <th>Scanned List</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -100,7 +100,6 @@
                     </tbody>
                 </table>
             </v-card>
-
 
         </v-flex>
     </v-layout>
@@ -117,18 +116,25 @@
                 dialog3: '',
                 scanPath: new String(),
                 scannedPaths: [''],
-                infectedPaths: ['']
+                infectedPaths: [],
+                unknownPaths: [''],
+                scanResultShow: false,
+                infectedToQurantine: false
                 // vaccinePath: '',
             }
         },
         methods: {
+            malwareMoveQurantine() {
+                ipcRenderer.send('malwareMoveQurantine', this.infectedPaths)
+            },
             pathIn(e) {
                 this.scanPath = e.target.files[0].path;
             },
             scanStart() {
                 ipcRenderer.send('scanStart', {
-                    path: this.scanPath
+                    path: this.scanPath,
                 });
+                this.scanResultShow = true;
             },
             transferRequestToTracker() {
                 ipcRenderer.send('transferRequestToTracker');
@@ -391,6 +397,9 @@
                 console.log(typeof(scanResult), scanResult);
                 this.scannedPaths = scanResult.ScannedPaths;
                 this.infectedPaths = scanResult.InfectedPaths;
+                if(this.infectedPaths.length != 0) this.infectedToQurantine = true;
+                console.log(this.infectedPaths.length, this.infectedToQurantine)
+                this.unknownPaths = scanResult.UnknownPatzhs;
                 console.log(this.scannedPaths);
             });
 
