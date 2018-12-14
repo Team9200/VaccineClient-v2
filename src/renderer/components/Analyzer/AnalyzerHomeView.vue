@@ -2,7 +2,7 @@
     <div>
         <v-layout>
 
-            <v-flex xs8>
+            <v-flex xs12>
                 <div style="padding-top: 10px;"></div>
 
                 <v-card>
@@ -11,14 +11,10 @@
                             select-all item-key="filename" class="elevation-1">
                             <template slot="headers" slot-scope="props">
                                 <tr>
-                                    <th>
-                                        <v-checkbox :input-value="props.all" :indeterminate="props.indeterminate"
-                                            primary hide-details @click="toggleAll"></v-checkbox>
-                                    </th>
                                     <th v-for="header in props.headers" :key="header.text" :class="['column sortable', pagination.descending ? 'desc' : 'asc', header.value === pagination.sortBy ? 'active' : '']"
                                         @click="changeSort(header.value)">
                                         <v-icon small>arrow_upward</v-icon>
-                                        {{ header.text }}
+                                        &nbsp;{{ header.text }}
                                     </th>
                                 </tr>
                             </template>
@@ -35,13 +31,13 @@
                 </v-card>
             </v-flex>
 
-            <v-flex xs4>
-                <v-btn class="btn success" @click="getDownFileList">Download</v-btn>
-                <v-btn class="btn red">Delete</v-btn>
-                <v-btn class="btn red">Delete All</v-btn>
+            <v-flex xs3 style="margin-left: 10px;">
+                <v-btn style ="width: 120px; height:60px;" class="btn success" @click="getDownFileList">Download</v-btn>
+                <v-btn style ="width: 120px; height:60px;" class="btn red">Delete</v-btn>
+                <v-btn style ="width: 120px; height:60px;" class="btn red">Delete All</v-btn>
             </v-flex>
         </v-layout>
-        <br><br><br>
+        <br>
         <v-flex>
             <v-card>
                 <v-container>
@@ -53,7 +49,7 @@
                                 directory>
                         </v-flex>
                         <v-flex xs2>
-                            <v-btn style="width: 150px;" @click="save" class="success">Save</v-btn>
+                            <v-btn style="width: 50px;" @click="save" class="success">Save</v-btn>
                         </v-flex>
                     </v-layout>
                 </v-container>
@@ -81,6 +77,24 @@
             files: [{
                 value: false,
                 filename: 'readme.txt'
+            }, {
+                value: false,
+                filename: 'bin.exe',
+            }, {
+                value: false,
+                filename: 'bin.exe',
+            }, {
+                value: false,
+                filename: 'bin.exe',
+            }, {
+                value: false,
+                filename: 'bin.exe',
+            }, {
+                value: false,
+                filename: 'bin.exe',
+            }, {
+                value: false,
+                filename: 'bin.exe',
             }, {
                 value: false,
                 filename: 'bin.exe',
