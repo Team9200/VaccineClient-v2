@@ -134,39 +134,48 @@
       refresh: false,
       vaccinePath: '',
       collectors: [{
-        icon: 'search',
+        icon: 'security',
         title: 'Vaccine',
         to: '/vaccine'
       }, {
-        icon: '',
+        icon: 'gavel',
         title: 'Quarantine',
         to: '/quarantine'
       }, {
-        icon: '',
+        icon: 'history',
         title: 'Log',
         to: '/log'
       }, {
         icon: 'folder',
         title: 'Get File',
         to: '/getfile'
+      }, {
+        icon: 'account_balance_wallet',
+        title: 'Wallet',
+        to: '/wallet'
       }],
-      analyzers: [],
+      analyzers: [{
+        icon: 'folder',
+        title: 'Get File',
+        to: '/getfile'
+      }, {
+        icon: 'account_balance_wallet',
+        title: 'Wallet',
+        to: '/wallet'
+      }],
       storages: [{
-          icon: 'list',
-          title: 'File List',
-          to: '/filelist'
-        },
-        {
-          icon: 'folder',
-          title: 'Get File',
-          to: '/getfile'
-        },
-        {
-          icon: 'fas fa-wallet',
-          title: 'Wallet',
-          to: '/wallet'
-        }
-      ],
+        icon: 'folder',
+        title: 'File List',
+        to: '/filelist'
+      }, {
+        icon: 'folder_shared',
+        title: 'Get File',
+        to: '/getfile'
+      }, {
+        icon: 'account_balance_wallet',
+        title: 'Wallet',
+        to: '/wallet'
+      }],
       modes: [{
         title: 'Collector'
       }, {

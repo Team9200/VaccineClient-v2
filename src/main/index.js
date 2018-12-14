@@ -14,6 +14,7 @@ import storage from 'electron-json-storage';
 import fs from 'fs';
 import zipFolder from 'zip-folder';
 import express from 'express';
+import WebSocket from 'ws';
 
 import { deleteFolderRecursive, base64Encode, sliceEncodedData } from './modules/util'
 import { start } from './modules/unknownfs/main';
@@ -93,6 +94,7 @@ storage.has('vaccine', function (err, hasKey) {
       storage.get('vaccine', function (err, data) {
           if (err) throw err;
           vaccinePath = data.path;
+          console.log(vaccinePath);
       });
   }
 });
@@ -167,7 +169,7 @@ ipcMain.on('scanStart', (event, message) => {
   });
 });
 
-const trackerIP = '192.168.2.131';
+const trackerIP = '192.168.2.31';
 
 ipcMain.on('transferRequestToTracker', (event, message) => {
   const trakerURL = 'http://' + trackerIP + ':29200/sendToStorage?senderPeerId=' + publicKey;
@@ -359,6 +361,7 @@ ipcMain.on('malwareRequest', function(event, msg) {
 });
 
 ipcMain.on('requestMalware-tracker', function(event, message) {
+  console.log('req mal tracker');
   //tracker URL
   //send GET message
   //get storage IP 
@@ -380,9 +383,12 @@ ipcMain.on('receiveMalware', function(event, message) {
   }
 })
 
-
-ipcMain.on('getFSHeader', function(event, message) {
-  headerJson();
+// let fileList;
+ipcMain.on('getFSFileListREQ', function(event, message) {
+  console.log("get FS FIle List REQ in");
+  // fileList = await headerJson();
+  // console.log('fileList', fileList.toString());
+  // event.sender.send('getFSFileListRPY', JSON.stringify(fileList));
 });
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -449,6 +455,29 @@ ipcMain.on('setVaccinePath', (event, message) => {
 ipcMain.on('getMyKeySend', (event, message) => {
   console.log(publicKey, secretKey);
   event.sender.send('getMyKeyOn', publicKey, secretKey);
+});
+
+let myUTXO;
+ipcMain.on('getMyBalance', (event, message) => {
+  console.log('get my bal clicked');
+  const trakerURL = 'http://' + trackerIP + ':29200/findMiningStorage';
+  http.get(trakerURL, (response) => {
+    response.on('data', (data) => {
+      let miningNodeIP = JSON.parse(data.toString()).message.address
+      console.log('Mining Node IP', miningNodeIP);
+      const ws = new WebSocket('ws://' + miningNodeIP + ':59200');
+      ws.onopen = (event) => {
+        ws.send(JSON.stringify({
+          type:'balance',
+          pid: publicKey
+        }));
+      };
+      ws.onmessage = (event) => {
+        myUTXO = event.data;
+        console.log(myUTXO);
+      }
+    });
+  });
 });
 
 //

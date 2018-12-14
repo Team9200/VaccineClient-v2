@@ -1,10 +1,7 @@
 <template>
     <div>
         <v-layout>
-
             <v-flex xs12>
-                <div style="padding-top: 10px;"></div>
-
                 <v-card>
                     <v-container>
                         <v-data-table v-model="selected" :headers="headers" :items="files" :pagination.sync="pagination"
@@ -40,7 +37,7 @@
         <br>
         <v-flex>
             <v-card>
-                <v-container>
+                <v-container style="position: absolute;">
                     <v-layout>
                         <v-flex xs12>
                             <v-text-field prepend-icon="attach_file" single-line v-model="storagePath" label="storage path"
@@ -369,13 +366,15 @@
 
 <style>
     .btn {
-        width: 300px;
+        width: 220px;
         height: 80px;
         font-size: 15px;
     }
 
     input[type=file] {
+        width:50%;
         position: absolute;
         left: -99999px;
     }
+
 </style>

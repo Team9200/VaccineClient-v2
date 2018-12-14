@@ -86,6 +86,13 @@
                     }
                 ]
             }
+        },
+        mounted () {
+            ipcRenderer.send('getFSFileListREQ');
+            ipcRenderer.on('getFSFileListRPY', (event, message)=> {
+                console.log(message.toString());
+                // this.files = message;
+            });
         }
     }
 </script>

@@ -5,7 +5,7 @@
                 <v-text-field style="width: 550px;" v-model="keyword" label="keyword"></v-text-field>
             </v-flex>
             <v-flex>
-                <v-btn color="green">Search</v-btn>
+                <v-btn color="green" style="width: 280px" @click="requestMalwareTracker">Search Malware Sample</v-btn>
             </v-flex>
         </v-layout>
         <div style="overflow-x: auto;" v-for="(item, i) in items" :key="i">
@@ -19,10 +19,43 @@
             </v-card>
             <br>
         </div>
-        <div>
+        <v-layout>
+            <v-card height="150px" width="100%">
+                <v-card-title style="font-size:20px; font-weight:bold">
+                    Search Result
+                </v-card-title>
+                <v-flex>
+                    <v-card-text v-text="searchResult">
+                    </v-card-text>
+                </v-flex>
+                <v-flex>
+                    <v-card-title style="width:130px; float: left; font-weight:bold">Sample Cost</v-card-title>
+                    <v-card-text style="font-size:13px; width:50px; float: left">1</v-card-text>
+                    <v-card-text style="font-size:13px; width:70px; float: left">OTC</v-card-text>
+                </v-flex>
+                <v-flex>
+                    <v-card-title style="width:100px; float: left; font-weight:bold">Balance</v-card-title>
+                    <v-card-text v-text="nowBalance" style="font-size:13px; width:50px; float: left">OTC</v-card-text>
+                    <v-card-text style="font-size:13px; width:70px; float: left">OTC</v-card-text>
+                </v-flex>
+                <v-btn color="gray" style="float: right; position: relative; right:30px;" @click="requestMalwareTracker">Download</v-btn>
+            </v-card>
+        </v-layout>
+        <!-- <div style="overflow-x: auto;" v-for="(item, i) in items" :key="i">
+            <v-card width="100%">
+                <v-card-title
+                    {{ item.title }}
+                </v-card-title>
+                <v-card-text>
+                    {{ item.url }}
+                </v-card-text>
+            </v-card>
+            <br>
+        </div> -->
+        <!-- <div>
             <v-spacer></v-spacer>
             <v-btn color="green" @click="requestMalwareTracker">Pay for Sample</v-btn>
-        </div>
+        </div> -->
     </div>
 </template>
 
@@ -31,6 +64,8 @@
         name: 'get-file-view',
         data: () => ({
             keyword: '',
+            searchResult: '',
+            nowBalance: '100',
             items: [
                 {
                     title: 'Ransomware | 0.34 Coin | 2018.11.27',
@@ -48,7 +83,7 @@
                 }
             ]
         }),
-        method: {
+        methods: {
             requestMalwareTracker() {
                 ipcRenderer.send('requestMalware-tracker');
             }

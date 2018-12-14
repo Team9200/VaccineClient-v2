@@ -1,41 +1,23 @@
 <template>
-    <v-layout row>
-        <v-flex xs12>
+    
+    <div style="width: 100%">
+        <v-container fluid grid-list-md>
             <h1>Wallet</h1>
-            <v-card>
-                <v-list two-line>
-                    <v-list-tile>
-                        <v-list-tile-action>
-                            <v-icon color="green">far fa-address-book</v-icon>
-                        </v-list-tile-action>
-                        <v-list-tile-content>
-                            <v-list-tile-title>Address</v-list-tile-title>
-                            <v-list-tile-sub-title>
-                                4C1CAA0F730DFF9CC83DD90D0F8618AD924AB5E7D94D42B329F9D5FFF5DDC227
-                            </v-list-tile-sub-title>
-                        </v-list-tile-content>
-                    </v-list-tile>
-    
-                    <v-divider inset></v-divider>
-    
-                    <v-list-tile>
-                        <v-list-tile-action>
-                            <v-icon color="green">money</v-icon>
-                        </v-list-tile-action>
-    
-                        <v-list-tile-content>
-                            <v-list-tile-title>Amount</v-list-tile-title>
-                            <v-list-tile-sub-title>500 coins</v-list-tile-sub-title>
-                        </v-list-tile-content>
 
-                        <v-btn router :to="send_link">
-                            <v-icon color="indigo">send</v-icon>
-                        </v-btn>
-                    </v-list-tile>
-                </v-list>
-            </v-card>
-        </v-flex>
-    </v-layout>
+            <v-layout row wrap>
+                <v-flex lg3 sm7 xs12>
+                    asd
+                </v-flex>
+                <v-flex lg3 sm5 xs12>
+                    <v-btn @click="getMyBalance">
+                        <v-icon color="indigo">send</v-icon>
+                    </v-btn>
+                </v-flex>
+                
+            </v-layout>
+        </v-container>
+    </div>
+
 </template>
 
 <script>
@@ -43,6 +25,50 @@
         name: 'wallet-view',
         data: () => ({
             send_link: '/send-wallet'
-        })
+        }),
+        methods : {
+            getMyBalance() {
+                this.$electron.ipcRenderer.send('getMyBalance');
+            }
+        }
     }
 </script>
+
+
+<style>
+    .tbl-scanResult {
+        background: #eee;
+        border-collapse: separate;
+        box-shadow: inset 0 1px 0 #fff;
+        font-size: 12px;
+        line-height: 24px;
+        margin: 30px auto;
+        text-align: left;
+        width: 100%;
+    }	
+
+    .tbl-scanResult th {
+        background: #444;
+        border-left: 1px solid #555;
+        border-right: 1px solid #777;
+        border-top: 1px solid #555;
+        border-bottom: 1px solid #333;
+        box-shadow: inset 0 1px 0 #999;
+        color: #fff;
+        font-weight: bold;
+        padding-left: 15px;
+        position: relative;
+        text-shadow: 0 1px 0 #000;	
+    }
+
+    .tbl-scanResult td {
+        border-right: 1px solid #fff;
+        border-left: 1px solid #e8e8e8;
+        border-top: 1px solid #fff;
+        border-bottom: 1px solid #e8e8e8;
+        position: relative;
+        padding-left: 15px;
+        color: #333;
+        transition: all 300ms;
+    }
+</style>

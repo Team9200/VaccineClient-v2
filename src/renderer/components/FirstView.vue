@@ -190,10 +190,8 @@
         mounted () {
             var sk = this.getPrivKey();
             var pk = this.getPubKey(sk);
-            this.sk = sk.toString('hex');
-            this.pk = pk.toString('hex');
-            console.log(typeof(this.secretKey), this.secretKey);
-            console.log(this.publicKey);
+            this.sk = bs58check.encode(sk);
+            this.pk = bs58check.encode(pk);
         },
         watch: {
             node(val) {
