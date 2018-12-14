@@ -153,17 +153,21 @@ ipcMain.on('scanStart', (event, message) => {
     console.log('Scan Result:', scanResultJSON);
     
     //make unknown.zip
+    let stream;
     scanResultJSON.UnknownPaths.forEach((v, i) => {
       console.log(__dirname);
       console.log('src :', v);
       console.log('dst : ', path.join(__dirname, '../../tmpUnknown', v.split('\\').pop()));
-      fs.createReadStream(v).pipe(fs.createWriteStream(path.join(__dirname, '../../tmpUnknown', v.split('\\').pop())));
+      stream = fs.createReadStream(v).pipe(fs.createWriteStream(path.join(__dirname, '../../tmpUnknown', v.split('\\').pop())));
       console.log(fs.copyFileSync);
     });
 
-    zipFolder(tmpUnknownDir, path.join(__dirname, '../../tmpMalware.zip'), (err) => { 
+    stream.on('finish', () => {
+      zipFolder(tmpUnknownDir, path.join(__dirname, '../../tmpMalware.zip'), (err) => { 
       if(err) console.log(err); deleteFolderRecursive(tmpUnknownDir);
     });
+  });
+    
 
     event.sender.send('scanResult', scanResultStr, (err) => {console.log(err)});
   });
