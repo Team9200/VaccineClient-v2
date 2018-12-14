@@ -1,11 +1,29 @@
 <template>
     <div>
         <v-layout>
+            <v-card height="120px" width="100%">
+                <v-card-title style="font-size:17px; font-weight:bold">
+                    My Coin
+                </v-card-title>
+                <v-flex>
+                    <v-card-title style="width:120px; float: left; font-weight:bold;">Select Cost :</v-card-title>
+                    <v-card-text style="font-size:15px; width:70px; float: left; font-weight:bold; color: red;">0</v-card-text>
+                    <v-card-text style="font-size:13px; width:50px; float: left;">OTC</v-card-text>
+                </v-flex>
+                <v-flex>
+                    <v-card-title style="width:100px; float: left; font-weight:bold;">Balance :</v-card-title>
+                    <v-card-text v-text="nowBalance" style="font-size:15px; width:70px; float: left; font-weight:bold; color: red;"></v-card-text>
+                    <v-card-text style="font-size:13px; width:50px; float: left;">OTC</v-card-text>
+                </v-flex>
+                <v-btn color="gray" style="float: right; position: relative; right:30px;" @click="requestMalwareTracker">Download</v-btn>
+            </v-card>
+        </v-layout>
+        <v-layout>
             <v-flex>
-                <v-text-field style="width: 550px;" v-model="keyword" label="keyword"></v-text-field>
+                <v-text-field style="width: 500px;" v-model="keyword" label="Input Tag Name For Search"></v-text-field>
             </v-flex>
             <v-flex>
-                <v-btn color="green" style="width: 280px" @click="requestMalwareTracker">Search Malware Sample</v-btn>
+                <v-btn color="green" style="width: 140px" @click="searchMalwareSample">Search Sample</v-btn>
             </v-flex>
         </v-layout>
         <div style="overflow-x: auto;" v-for="(item, i) in items" :key="i">
@@ -19,28 +37,6 @@
             </v-card>
             <br>
         </div>
-        <v-layout>
-            <v-card height="150px" width="100%">
-                <v-card-title style="font-size:20px; font-weight:bold">
-                    Search Result
-                </v-card-title>
-                <v-flex>
-                    <v-card-text v-text="searchResult">
-                    </v-card-text>
-                </v-flex>
-                <v-flex>
-                    <v-card-title style="width:130px; float: left; font-weight:bold">Sample Cost</v-card-title>
-                    <v-card-text style="font-size:13px; width:50px; float: left">1</v-card-text>
-                    <v-card-text style="font-size:13px; width:70px; float: left">OTC</v-card-text>
-                </v-flex>
-                <v-flex>
-                    <v-card-title style="width:100px; float: left; font-weight:bold">Balance</v-card-title>
-                    <v-card-text v-text="nowBalance" style="font-size:13px; width:50px; float: left">OTC</v-card-text>
-                    <v-card-text style="font-size:13px; width:70px; float: left">OTC</v-card-text>
-                </v-flex>
-                <v-btn color="gray" style="float: right; position: relative; right:30px;" @click="requestMalwareTracker">Download</v-btn>
-            </v-card>
-        </v-layout>
         <!-- <div style="overflow-x: auto;" v-for="(item, i) in items" :key="i">
             <v-card width="100%">
                 <v-card-title
@@ -66,24 +62,62 @@
             keyword: '',
             searchResult: '',
             nowBalance: '100',
-            items: [
-                {
-                    title: 'Ransomware | 0.34 Coin | 2018.11.27',
-                    url: 'http://openti.info/?num=123'
-                },
-                {
-                    title: 'Ransomware | 0.34 Coin | 2018.11.27',
-                    url: 'http://openti.info/?num=123'
-                },{
-                    title: 'Ransomware | 0.34 Coin | 2018.11.27',
-                    url: 'http://openti.info/?num=123'
-                },{
-                    title: 'Ransomware | 0.34 Coin | 2018.11.27',
-                    url: 'http://openti.info/?num=123'
-                }
-            ]
+            items: []
         }),
         methods: {
+            searchMalwareSample() {
+                const vm = this;
+                const apiServerIP = '192.168.1.37';
+                const URL = require('url').URL;
+                const http = require('http');
+                console.log('Search Malware Sample');
+
+                try{
+                    var options = new URL('http://' + apiServerIP + ':3000/api/post/get/body?type=tag&query=' + vm.keyword);
+                    var req = http.request(options, function(res) {
+                        var body = '';
+                        res.on('data', function(data) {
+                            body += data;
+                        });
+
+                        res.on('end', function(data) {
+                            var searchMalwareResult = JSON.parse(body);
+                            console.log(searchMalwareResult);
+                            vm.items = [];
+                            searchMalwareResult.message.some(function(res){
+                                if (vm.keyword) {
+                                    vm.items.push({title: vm.keyword + ' | ' + '1 OTC' + ' | ' + res.body.date, url: 'http://openti.info/' + res.permlink});
+                                }
+                                else {
+                                    vm.items.push({title: res.body.tag_name_etc[0].tag + ' | ' + '1 OTC' + ' | ' + res.body.date, url: 'http://openti.info/' + res.permlink});
+                                }
+                            });
+                        });
+                    });
+                    req.on('error', function(error) {
+                        switch (error.code) {
+                            case 'ECONNRESET':
+                                console.log(error);
+                                break;
+                            
+                            case 'ECONNABORTED':
+                                console.log(error);
+                                break;
+
+                            case 'EPIPE':
+                                console.log(error);
+                                break;
+
+                            default:
+                                console.log(error);
+                                break;
+                        }
+                    });
+                    req.end();
+                } catch(error) {
+                    console.log("error", error);
+                }
+            },
             requestMalwareTracker() {
                 ipcRenderer.send('requestMalware-tracker');
             }
