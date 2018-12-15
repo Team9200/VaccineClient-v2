@@ -27,9 +27,29 @@
                         <v-icon class="mainIcon" x-large>security</v-icon><span class="menuText">{{ items[0].title }}</span></v-btn>
                 </v-flex>
                 <v-flex lg3 sm6 xs12>
-                    <v-btn style="height: 180px; font-size: 15px; border-radius: 60px; border: 5px solid #03787F" @click="feedback" block color="#05b7c3" dark>
-                        <v-icon class="mainIcon" x-large>add_comment</v-icon><span class="menuText">Feedback</span>
+                    <v-dialog style="width: 100%;" v-model="dialog">
+                        <v-btn style="width: 100%; height: 180px; font-size: 15px; border-radius: 60px; border: 5px solid #03787F" @click="feedback" block color="#05b7c3" slot="activator">
+                            <v-icon class="mainIcon" x-large>add_comment</v-icon><span class="menuText">Feedback</span>
                         </v-btn>
+
+                        <v-card>
+                            <v-card-title class="headline">
+                                Feedback
+                            </v-card-title>
+
+                            <v-card-text v-text="feedbackLink">
+                            </v-card-text>
+
+                            <v-divider></v-divider>
+
+                            <v-card-actions>
+                                <v-spacer></v-spacer>
+                                <v-btn color="green" @click='dialog = false' flat >
+                                    close
+                                </v-btn>
+                            </v-card-actions>
+                        </v-card>
+                    </v-dialog>
 
                 </v-flex>
 
@@ -81,11 +101,18 @@
                     title: 'Wallet',
                     to: '/wallet'
                 }
-            ]
+            ],
+            feedbackLink: '',
+            dialog:''
         }),
         methods: {
             feedback() {
-                console.log('feedback clicked');
+                this.$electron.ipcRenderer.send('getFeedback');
+                this.$electron.ipcRenderer.on('feedbackData', (event, message) => {
+                    console.log(message);
+                    console.log(message.permlink);
+                    this.feedbackLink = message;
+                });
             }
         }
     }

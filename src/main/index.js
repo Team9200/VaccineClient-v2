@@ -282,6 +282,25 @@ ipcMain.on('getLog', function (event, message) { //로그창 띄우기
   })
 });
 
+ipcMain.on('getFeedback', (event, message) => {
+  console.log('enter get Feedback');
+  const webServerIP = 'http://192.168.1.37:3000';
+  http.get(webServerIP + '/api/post/search?type=node&query=' + '6jPbgfYTUK9HS7b4XZyvYdSpT1dcaBd45A8ww19tUBbZDFKzih', (response) => {
+    response.on('data', (res) => {
+      console.log('isSuccess', JSON.parse(res).message);
+      let permlinks = [];
+      if (JSON.parse(res).success == true) {
+        let permlinks = [];
+        for(let i = 0 ; i < JSON.parse(res).message.length; i++) {
+          console.log(JSON.parse(res).message[i].permlink);
+          permlinks.push(JSON.parse(res).message[i].permlink);
+        }
+        event.sender.send('feedbackData', 'http://192.168.1.37:8080' + permlinks);
+      }
+    })
+  });
+});
+
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Storage Node
