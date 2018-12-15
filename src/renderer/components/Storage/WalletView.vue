@@ -26,21 +26,21 @@
             <div style="float:right; width:50%; padding:10px;">
                 <v-flex>
                     <v-card>
-                        <v-container style="height:120px">
+                        <v-container style="height:120px;">
                             <v-flex>
-                                <v-card-title style="width:130px; float: left">
+                                <v-card-title style="width:100%; float: left; padding: 7px 0px">
                                     Balance
                                 </v-card-title>
-                                <v-card-text style="width: 100px; float: right">
-                                    asd
+                                <v-card-text v-text="balance" style="width: 70px; float: right; padding: 0">
+                                    loading...
                                 </v-card-text>
                             </v-flex>
                             <v-flex>
-                                <v-card-title style="width:130px; float: left">
+                                <v-card-title style="width:100%; float: left; padding: 7px 0px">
                                     My Address
                                 </v-card-title>
-                                <v-card-text style="width: 100px; float: right">
-                                    asd
+                                <v-card-text v-text="pubkey" style="float: right; padding: 0; font-size:9px">
+                                    loading...
                                 </v-card-text>
                             </v-flex>
                         </v-container>
@@ -48,13 +48,13 @@
                 </v-flex>
                 <v-flex>
                     <v-card>
-                        <v-container style="height:260px">
+                        <v-container style="height:260px;">
                             <v-card-title>
                                 <h3>Send Coin</h3>
                             </v-card-title>
-                            <v-text-field label="Send To"></v-text-field>
-                            <v-text-field label="Value"></v-text-field>
-                            <v-btn style="float:right" @click="getMyBalance">
+                            <v-text-field label="Send To" v-model="receiverAddr"></v-text-field>
+                            <v-text-field label="Value" v-model="value"></v-text-field>
+                            <v-btn @click="sendTx" style="float:right">
                                 <v-icon color="indigo">send</v-icon>
                             </v-btn>
                         </v-container>
@@ -74,12 +74,26 @@
                 date: '1/1',
                 inout: 'out',
                 value: 5                
-            }]
+            }],
+            balance: 'loading...',
+            pubkey: 'loading...',
+            value: 0,
+            receiverAddr: ''
         }),
         methods : {
             getMyBalance() {
                 this.$electron.ipcRenderer.send('getMyBalance');
+            },
+            sendTx() {
+                this.$electron.ipcRenderer.send('sendTx', this.value, this.receiverAddr);
             }
+        },
+        mounted () {
+            this.getMyBalance();
+            this.$electron.ipcRenderer.on('balance', (event, balance, address) => {
+                this.balance = parseInt(balance) + '  OTC';
+                this.pubkey = address;
+            })
         }
     }
 </script>

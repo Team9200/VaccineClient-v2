@@ -16,13 +16,16 @@ import zipFolder from 'zip-folder';
 import express from 'express';
 import WebSocket from 'ws';
 
-import { deleteFolderRecursive, base64Encode, sliceEncodedData } from './modules/util'
+import { deleteFolderRecursive, base64Encode, sliceEncodedData } from './modules/util';
+import { getTotalAmount, MakePayment, signTransaction } from './modules/withblock';
 import { start } from './modules/unknownfs/main';
 import { createStorage } from './modules/unknownfs/createStorage';
 import { headerJson } from './modules/unknownfs/headerParse';
 import { signalingServer } from '../renderer/util/signalingServer';
 
 import http from 'http';
+const bs58check = require('bs58check');
+// import bs58check from 'base58check'
 import { sign } from 'electron-builder-lib/out/windowsCodeSign';
 
 require('date-utils');
@@ -96,7 +99,7 @@ storage.has('vaccine', function (err, hasKey) {
       storage.get('vaccine', function (err, data) {
           if (err) throw err;
           vaccinePath = data.path;
-          console.log(vaccinePath);
+          console.log('vaccine Path', vaccinePath);
       });
   }
 });
@@ -155,21 +158,23 @@ ipcMain.on('scanStart', (event, message) => {
     console.log('Scan Result:', scanResultJSON);
     
     //make unknown.zip
-    let stream;
-    scanResultJSON.UnknownPaths.forEach((v, i) => {
-      console.log(__dirname);
-      console.log('src :', v);
-      console.log('dst : ', path.join(__dirname, '../../tmpUnknown', v.split('\\').pop()));
-      stream = fs.createReadStream(v).pipe(fs.createWriteStream(path.join(__dirname, '../../tmpUnknown', v.split('\\').pop())));
-      console.log(fs.copyFileSync);
-    });
-
-    stream.on('finish', () => {
-      zipFolder(tmpUnknownDir, path.join(__dirname, '../../tmpMalware.zip'), (err) => { 
-      if(err) console.log(err); deleteFolderRecursive(tmpUnknownDir);
-    });
-  });
     
+    if(scanResultJSON.UnknownPaths.length != 0) {
+      let stream;
+      scanResultJSON.UnknownPaths.forEach((v, i) => {
+        console.log(__dirname);
+        console.log('src :', v);
+        console.log('dst : ', path.join(__dirname, '../../tmpUnknown', v.split('\\').pop()));
+        stream = fs.createReadStream(v).pipe(fs.createWriteStream(path.join(__dirname, '../../tmpUnknown', v.split('\\').pop())));
+        console.log(fs.copyFileSync);
+      });
+
+      stream.on('finish', () => {
+          zipFolder(tmpUnknownDir, path.join(__dirname, '../../tmpMalware.zip'), (err) => { 
+          if(err) console.log(err); deleteFolderRecursive(tmpUnknownDir);
+        });
+      });
+    }
 
     event.sender.send('scanResult', scanResultStr, (err) => {console.log(err)});
   });
@@ -178,8 +183,24 @@ ipcMain.on('scanStart', (event, message) => {
 ipcMain.on('malwareMoveQurantine', (event, message) => {
   console.log('func malwareMove', typeof(message), message);
   const quarantinePath = path.join(vaccinePath, '/engine/tmp/');
+  const quarantineLogPath = path.join(vaccinePath, '/engine/tmp/quarantine.json');
+  
   message.forEach((v, i) => {
     fs.renameSync(v, path.join(quarantinePath, path.basename(v)));
+    const dt = new Date().toFormat('YYYY-MM-DD HH24:MI:SS');
+    const newLog = {
+      type: 'quarantine',
+      timestamp: dt,
+      data: path.join(quarantinePath, path.basename(v))
+    };
+  
+    fs.readFile(quarantineLogPath, (err, data) => {
+      if(err) console.log(err);
+      console.log(data);
+      let existingLogJson = JSON.parse(data);
+      existingLogJson.push(newLog);
+      fs.writeFileSync(quarantineLogPath, JSON.stringify(existingLogJson));
+    });
   });
 });
 
@@ -232,16 +253,21 @@ ipcMain.on('fileRequest', function(event, msg) {
 ipcMain.on('getQuarantine', (event, message) => {
   console.log('ipcMain:openQuarantine');
   // TODO: Fix vaccine path
-  const quarantinePath = path.join(vaccinePath, '/engine/tmp/');
-  const quarantineFileList = new Array();
+  const quarantineLogPath = path.join(vaccinePath, '/engine/tmp/quarantine.json');
+  // const quarantineFileList = new Array();
 
-  fs.readdir(quarantinePath, (err, files) => {
+  // fs.readdir(quarantinePath, (err, files) => {
+  //   if (err) throw err;
+  //   files.forEach(file => {
+  //     console.log(file);
+  //     quarantineFileList.push(file);
+  //   });
+  //   event.sender.send('quarantineFileList', quarantineFileList);
+  // })
+  fs.readFile((quarantineLogPath), (err, data) => {
     if (err) throw err;
-    files.forEach(file => {
-      console.log(file);
-      quarantineFileList.push(file);
-    });
-    event.sender.send('quarantineFileList', quarantineFileList);
+    const logData = data.toString('utf8');
+    event.sender.send('quarantineFileList', logData);
   })
 });
 
@@ -270,6 +296,12 @@ let checkValue = 0;
 const storageSize = 1;
 const mining = true;
 
+ipcMain.on('createStorage', (event, message) => {
+  console.log(message);
+  createStorage((message));
+});
+
+ipcMain.on('storageInit', function(event, message) {
 ipcMain.once('runSignalingServer', function(event, message) {
   signalingServer();
 });
@@ -322,6 +354,8 @@ ipcMain.once('storageInit', function(event, message) {
   //   event.sender.send('storagePid', storagePid);
   // })
 
+  headerJson();
+
   //findFile with fileHash
   expressApp.get('/findFile', (request, response) => {
     var fileHash = request.query.fileHash;
@@ -351,6 +385,7 @@ ipcMain.once('storageInit', function(event, message) {
   });
 
   start();
+
 });
 
 //Receved Unknown Sample handle from Collector
@@ -443,9 +478,7 @@ ipcMain.on('receiveMalware', function(event, message) {
 // let fileList;
 ipcMain.on('getFSFileListREQ', function(event, message) {
   console.log("get FS FIle List REQ in");
-  // fileList = await headerJson();
-  // console.log('fileList', fileList.toString());
-  // event.sender.send('getFSFileListRPY', JSON.stringify(fileList));
+  headerJson();
 });
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -520,24 +553,79 @@ ipcMain.on('getMyKeySend', (event, message) => {
 let myUTXO;
 ipcMain.on('getMyBalance', (event, message) => {
   console.log('get my bal clicked');
-  const trakerURL = 'http://' + trackerIP + ':29200/findMiningStorage';
-  http.get(trakerURL, (response) => {
-    response.on('data', (data) => {
-      let miningNodeIP = JSON.parse(data.toString()).message.address
-      console.log('Mining Node IP', miningNodeIP);
-      const ws = new WebSocket('ws://' + miningNodeIP + ':59200');
-      ws.onopen = (event) => {
-        ws.send(JSON.stringify({
-          type:'balance',
-          pid: publicKey
-        }));
-      };
-      ws.onmessage = (event) => {
-        myUTXO = event.data;
-        console.log(myUTXO);
-      }
+  // const trakerURL = 'http://' + trackerIP + ':29200/findMiningStorage';
+  // http.get(trakerURL, (response) => {
+  //   response.on('data', (data) => {
+  //     let miningNodeIP = JSON.parse(data.toString()).message.address
+  //     console.log('Mining Node IP', miningNodeIP);
+  //     const ws = new WebSocket('ws://' + miningNodeIP + ':59200');
+  //     ws.onopen = (event) => {
+  //       ws.send(JSON.stringify({
+  //         type:'balance',
+  //         pid: publicKey
+  //       }));
+  //     };
+  //     ws.onmessage = (event) => {
+  //       myUTXO = event.data;
+  //       console.log(myUTXO);
+  //     }
+  //   });
+  // });
+  // const ws = new WebSocket('ws://' + '106.10.55.238' + ':3001');
+
+  const ws = new WebSocket('ws://192.168.1.250:59200');
+
+  // const wsAddr = 'ws://192.168.1.250:59200';
+  // const ws = new WebSocket(wsAddr);
+
+  console.log('pk', publicKey, 'sk', secretKey);
+  ws.onopen = (event) => {
+    console.log('open?');
+    ws.send(JSON.stringify({
+      type:'balance',
+      pid: publicKey
+    }));
+  };
+  ws.onmessage = (evt) => {
+    console.log('get message');
+    myUTXO = evt.data;
+    console.log(myUTXO);
+    storage.set('myUTXO', {
+      myUTXO: JSON.parse(myUTXO)
     });
-  });
+    const balance = getTotalAmount(JSON.parse(myUTXO));
+    console.log(balance);
+    event.sender.send('balance', balance, publicKey);
+    // ws.close();
+  };
+  ws.onclose = (evt) => {
+    console.log('ws closed');
+  }
+});
+
+ipcMain.on('sendTx', (event, value, receiverAddr) => {
+  console.log('get my send tx clicked', value, receiverAddr);
+  console.log(value, myUTXO, bs58check.decode(receiverAddr), bs58check.decode(secretKey), bs58check.decode(publicKey));
+  const TX = MakePayment(value, JSON.parse(myUTXO), bs58check.decode(receiverAddr), bs58check.decode(secretKey), bs58check.decode(publicKey), 1, 0, 0);
+  console.log('TX', TX);
+
+  // const ws = new WebSocket('ws://' + '106.10.55.238' + ':3001');
+  const ws = new WebSocket('ws://192.168.1.250:59200');
+
+  ws.onopen = (event) => {
+    ws.send(JSON.stringify({
+      type: 'transaction',
+      transaction: TX
+    }));
+  };
+  ws.onmessage = (evt) => {
+    const note = evt.data;
+    console.log(note);
+    // ws.close();
+  };
+  ws.onclose = (evt) => {
+    console.log('ws closed');
+  }
 });
 
 //

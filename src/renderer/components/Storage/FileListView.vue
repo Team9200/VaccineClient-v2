@@ -51,6 +51,7 @@
                 vm.files.push({value: false, no: no, hash: res.sha256, size: res.size});
                 no = no + 1;
             });
+            this.$electron.ipcRenderer.send('getFSFileListREQ');
         }
     }
 </script>

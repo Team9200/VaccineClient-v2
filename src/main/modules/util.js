@@ -24,6 +24,7 @@ const sliceEncodedData = (encoded_data, offset) => {
     return encoded_data.slice(offset, offset+chunkSize);
   };
 
+
 export {
     deleteFolderRecursive,
     base64Encode,

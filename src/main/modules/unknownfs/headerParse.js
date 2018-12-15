@@ -34,7 +34,7 @@ export async function headerJson(){
 	console.log('RESULT', result);
 	writeSync(f, JSON.stringify(result));
 
-	return await result;
+	result;
 }
 
 

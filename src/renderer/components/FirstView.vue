@@ -180,7 +180,8 @@
                 storage.set('setting', {
                     setting: true
                 })
-                this.refresh = true
+                this.refresh = true;
+                if(this.mode == 'storage') ipcRenderer.send('createStorage', this.storageSize);
             },
             refreshing: function () {
                 ipcRenderer.send('reload', 'ping');

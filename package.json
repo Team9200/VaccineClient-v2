@@ -69,6 +69,7 @@
     "python-shell": "^1.0.6",
     "random-uuid-v4": "0.0.8",
     "secp256k1": "^3.5.2",
+    "sha256": "^0.2.0",
     "sha256-file": "^1.0.0",
     "socket.io": "^2.2.0",
     "socket.io-client": "^2.2.0",
