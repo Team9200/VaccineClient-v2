@@ -1,21 +1,15 @@
 <template>
     <div>
         <v-layout>
-            <v-card height="120px" width="100%">
+            <v-card height="110px" width="100%">
                 <v-card-title style="font-size:17px; font-weight:bold">
                     My Coin
                 </v-card-title>
                 <v-flex>
-                    <v-card-title style="width:120px; float: left; font-weight:bold;">Select Cost :</v-card-title>
-                    <v-card-text style="font-size:15px; width:70px; float: left; font-weight:bold; color: red;">0</v-card-text>
-                    <v-card-text style="font-size:13px; width:50px; float: left;">OTC</v-card-text>
+                    <v-card-title style="margin-left:50px;width:120px; float: left; font-weight:bold;">Balance :</v-card-title>
+                    <v-card-text v-text="nowBalance" style="font-size:15px; width:100px; float: left; font-weight:bold; color: red;"></v-card-text>
+                    <v-card-text style="font-size:13px; width:70px; float: left;">OTC</v-card-text>
                 </v-flex>
-                <v-flex>
-                    <v-card-title style="width:100px; float: left; font-weight:bold;">Balance :</v-card-title>
-                    <v-card-text v-text="nowBalance" style="font-size:15px; width:70px; float: left; font-weight:bold; color: red;"></v-card-text>
-                    <v-card-text style="font-size:13px; width:50px; float: left;">OTC</v-card-text>
-                </v-flex>
-                <v-btn color="gray" style="float: right; position: relative; right:30px;" @click="requestMalwareTracker">Download</v-btn>
             </v-card>
         </v-layout>
         <v-layout>
@@ -23,14 +17,18 @@
                 <v-text-field style="width: 500px;" v-model="keyword" label="Input Tag Name For Search"></v-text-field>
             </v-flex>
             <v-flex>
-                <v-btn color="green" style="width: 140px" @click="searchMalwareSample">Search Sample</v-btn>
+                <v-btn color="green" style="width: 140px; margin-top:15px;" @click="searchMalwareSample">Search Sample</v-btn>
             </v-flex>
         </v-layout>
         <div style="overflow-x: auto;" v-for="(item, i) in items" :key="i">
             <v-card width="100%">
+                <v-btn color="gray" style="margin-top: 15px; float: right; position: relative; right:30px;" @click="requestMalwareTracker(item.hash)">Download</v-btn>
                 <v-card-title>
                     {{ item.title }}
                 </v-card-title>
+                <v-card-text>
+                    {{ item.hash }}
+                </v-card-text>
                 <v-card-text>
                     {{ item.url }}
                 </v-card-text>
@@ -86,10 +84,10 @@
                             vm.items = [];
                             searchMalwareResult.message.some(function(res){
                                 if (vm.keyword) {
-                                    vm.items.push({title: vm.keyword + ' | ' + '1 OTC' + ' | ' + res.body.date, url: 'http://openti.info/' + res.permlink});
+                                    vm.items.push({title: vm.keyword + ' | ' + '1 OTC' + ' | ' + res.body.date, hash: res.body.sha256, url: 'http://openti.info/' + res.permlink});
                                 }
                                 else {
-                                    vm.items.push({title: res.body.tag_name_etc[0].tag + ' | ' + '1 OTC' + ' | ' + res.body.date, url: 'http://openti.info/' + res.permlink});
+                                    vm.items.push({title: res.body.tag_name_etc[0].tag + ' | ' + '1 OTC' + ' | ' + res.body.date, hash: res.body.sha256, url: 'http://openti.info/' + res.permlink});
                                 }
                             });
                         });
@@ -118,13 +116,15 @@
                     console.log("error", error);
                 }
             },
-            requestMalwareTracker() {
-                ipcRenderer.send('requestMalware-tracker');
+            requestMalwareTracker(hash) {
+                console.log(hash);
+                ipcRenderer.send('requestMalware-tracker', hash);
             }
         },
+
         mounted () {
-            this.$electron.ipcRenderer.on('requestUnknownFile-storage', (event, tracker, sPid) => {
-                console.log(tracker);
+            this.$electron.ipcRenderer.on('requestMalware-storage', (event, signalingServer, sPid) => {
+                console.log(signalingServer);
                 let yourConn;
                 let dataChannel;
                 //our username  
@@ -132,7 +132,7 @@
                 var connectedUser; 
 
                 //connecting to our signaling server 
-                var conn = new WebSocket(tracker); 
+                var conn = new WebSocket(signalingServer); 
 
                 let malwareMeta;
                 let pieceCnt = 0;
@@ -172,7 +172,7 @@
                         default: 
                             break; 
                     } 
-                }; 
+                };
 
                 //signaling server conn error
                 conn.onerror = function (err) { 
@@ -276,7 +276,27 @@
                         console.log("Error when creating an answer"); 
                     });
                 };
-
+                // function sendFile() {
+                //     var unknownSample = new Object();
+                //     var unknownSampleMeta = new Object();
+                //     // sendProgress.value = '40';
+                //     ipcRenderer.send('unknownRequest');
+                //     ipcRenderer.on('unknownRequest-meta', (event, type, filename, size, pieces) => {
+                //         unknownSampleMeta.type = type;
+                //         unknownSampleMeta.filename = filename;
+                //         unknownSampleMeta.size = size;
+                //         unknownSampleMeta.pieces = pieces;
+                //         sendJSON(JSON.stringify(unknownSampleMeta));
+                //         console.log(JSON.stringify(unknownSampleMeta));
+                //     });
+                //     ipcRenderer.on('unknownRequest-reply', (event, pieceNum, binary) => {
+                //         unknownSample.pieceNum = pieceNum;
+                //         unknownSample.binary = binary;
+                //         sendJSON(JSON.stringify(unknownSample));
+                //         console.log(JSON.stringify(unknownSample));
+                //     });
+                //     // sendProgress.value = '70';
+                // };
                 function handleAnswer(answer) { 
                     yourConn.setRemoteDescription(new RTCSessionDescription(answer)); 
                 };
@@ -291,7 +311,7 @@
                     yourConn.onicecandidate = null; 
                     return;
                 };
-            })
+            });
         }
     }
 </script>

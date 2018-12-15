@@ -314,12 +314,41 @@ ipcMain.once('storageInit', function(event, message) {
     fs.writeFileSync('./storage/give', '');
   });
 
-  expressApp.get('/malwareStoS', (request, response) => {
-    console.log('get malware S to S');
-    const storagePid = request.query.peerId;
+  // expressApp.get('/malwareStoS', (request, response) => {
+  //   console.log('get malware S to S');
+  //   const storagePid = request.query.peerId;
 
-    event.sender.send('storagePid', storagePid);
-  })
+  //   fs.writeFileSync('./storage/give', '');
+  //   event.sender.send('storagePid', storagePid);
+  // })
+
+  //findFile with fileHash
+  expressApp.get('/findFile', (request, response) => {
+    var fileHash = request.query.fileHash;
+    var finderPeerId = request.query.finderPeerId;
+    var check = 0;
+    var filePath = path.join(__dirname, '../../header.json');
+    console.log('Request findFile fileHash:' + fileHash);
+    var fileList = fs.readFileSync(filePath, 'utf-8');
+    var data = JSON.parse(fileList);
+    data.some(function(res){
+        console.log(res.sha256);
+        if (res.sha256 == fileHash) {
+            check = check + 1;
+            console.log('success');
+
+            fs.writeFileSync('./storage/give@' + fileHash, '');
+            event.sender.send('storagePid', finderPeerId);
+          
+            response.send('success');
+            return (res.sha256 == fileHash);
+        }
+    });
+    if (check == 0) {
+        console.log('fail');
+        response.send('fail');
+    }
+  });
 
   start();
 });
@@ -384,6 +413,16 @@ ipcMain.on('requestMalware-tracker', function(event, message) {
   //send GET message
   //get storage IP 
   //ipc communication sig serv and peerid
+  const trackerURL = 'http://' + trackerIP + ':29200/findFile?fileHash=' + message + '&finderPeerId=' + publicKey;
+  console.log(trackerURL);
+  http.get(trackerURL, (response) => {
+    response.on('data', (res) => {
+      console.log('isSuccess', JSON.parse(res));
+      if (JSON.parse(res).success == true) {
+        event.sender.send('requestMalware-storage', 'ws://' + JSON.parse(res).SignalingServerURL, publicKey);
+      }
+    })
+  });
 });
 
 ipcMain.on('receiveMalware', function(event, message) {
