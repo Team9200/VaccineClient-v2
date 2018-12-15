@@ -301,7 +301,6 @@ ipcMain.on('createStorage', (event, message) => {
   createStorage((message));
 });
 
-ipcMain.on('storageInit', function(event, message) {
 ipcMain.once('runSignalingServer', function(event, message) {
   signalingServer();
 });
